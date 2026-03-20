@@ -70,7 +70,7 @@
   paths)
 
 (defgroup temme nil
-  "Tiny Emmet-like expansions."
+  "Emmet-style abbreviation expansion."
   :group 'editing)
 
 (defcustom temme-default-tag "div"
@@ -407,6 +407,7 @@ OFFSET shifts the starting position in the word pool for variety."
 
 (defun temme--clone-fragment (fragment)
   "Deep-copy FRAGMENT, preserving path structure in the clone."
+  ;; Clone every node, then map old→new so paths point into the new tree.
   (let ((map (make-hash-table :test #'eq)))
     (make-temme-fragment
      :roots
@@ -624,7 +625,7 @@ OFFSET shifts the starting position in the word pool for variety."
       (error "Unexpected token at position %d" pos))
     nodes))
 
-(defun temme--attrs (node)
+(defun temme--render-attrs (node)
   "Render NODE attributes into an HTML attribute string."
   (let ((id (temme-node-id node))
         (classes (copy-sequence (temme-node-classes node)))
@@ -721,7 +722,7 @@ REPEAT-INDEX is the 1-based repetition index, used to vary lorem text."
         (format "%s<%s%s>\n%s%s</%s>\n"
                 (temme--indent-string indent)
                 tag
-                (temme--attrs node)
+                (temme--render-attrs node)
                 (mapconcat
                  (lambda (child)
                    (temme-render-node child (+ indent temme-indent-offset)
@@ -734,12 +735,12 @@ REPEAT-INDEX is the 1-based repetition index, used to vary lorem text."
       (format "%s<%s%s />\n"
               (temme--indent-string indent)
               tag
-              (temme--attrs node)))
+              (temme--render-attrs node)))
      (t
       (format "%s<%s%s>%s</%s>\n"
               (temme--indent-string indent)
               tag
-              (temme--attrs node)
+              (temme--render-attrs node)
               (if text (temme--escape-text text) "")
               tag)))))
 
