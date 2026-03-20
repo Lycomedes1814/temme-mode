@@ -768,7 +768,11 @@ in a prefix like \":\" or \"://\", and empty tag content."
         (progn
           (when temme--field-end
             (goto-char temme--field-end))
-          (temme-exit-fields))
+          (temme-exit-fields)
+          (when (save-excursion
+                  (beginning-of-line)
+                  (looking-at-p "^[[:space:]]*$"))
+            (indent-according-to-mode)))
       (setq temme--field-index next)
       (goto-char (nth next temme--fields)))))
 
