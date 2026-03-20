@@ -171,36 +171,26 @@ Each entry is (NAME . PLIST) where PLIST contains :tag and optionally
 :attrs (an alist of default attributes).")
 
 (defconst temme--raw-snippets
-  `(("!" . ,(concat
-             "<!DOCTYPE html>\n"
-             "<html lang=\"en\">\n"
-             "<head>\n"
-             "  <meta charset=\"UTF-8\" />\n"
-             "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
-             "  <title></title>\n"
-             "</head>\n"
-             "<body>\n"
-             "  |\n"
-             "</body>\n"
-             "</html>\n"))
-    ("!!!" . ,"<!DOCTYPE html>\n")
-    ("ul+" . ,"<ul>\n  <li></li>\n</ul>\n")
-    ("ol+" . ,"<ol>\n  <li></li>\n</ol>\n")
-    ("dl+" . ,"<dl>\n  <dt></dt>\n  <dd></dd>\n</dl>\n")
-    ("table+" . ,"<table>\n  <tr>\n    <td></td>\n  </tr>\n</table>\n")
-    ("select+" . ,"<select>\n  <option value=\"\"></option>\n</select>\n")
-    ("doc" . ,(concat
-               "<!DOCTYPE html>\n"
-               "<html lang=\"en\">\n"
-               "<head>\n"
-               "  <meta charset=\"UTF-8\" />\n"
-               "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
-               "  <title>|</title>\n"
-               "</head>\n"
-               "<body>\n"
-               "  |\n"
-               "</body>\n"
-               "</html>\n")))
+  (let ((doc (concat
+              "<!DOCTYPE html>\n"
+              "<html lang=\"en\">\n"
+              "<head>\n"
+              "  <meta charset=\"UTF-8\" />\n"
+              "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
+              "  <title>|</title>\n"
+              "</head>\n"
+              "<body>\n"
+              "  |\n"
+              "</body>\n"
+              "</html>\n")))
+    `(("!" . ,doc)
+      ("doc" . ,doc)
+      ("!!!" . "<!DOCTYPE html>\n")
+      ("ul+" . "<ul>\n  <li></li>\n</ul>\n")
+      ("ol+" . "<ol>\n  <li></li>\n</ol>\n")
+      ("dl+" . "<dl>\n  <dt></dt>\n  <dd></dd>\n</dl>\n")
+      ("table+" . "<table>\n  <tr>\n    <td></td>\n  </tr>\n</table>\n")
+      ("select+" . "<select>\n  <option value=\"\"></option>\n</select>\n")))
   "Snippets that expand to raw HTML strings.
 These are only matched when the entire abbreviation is the snippet name.")
 

@@ -194,7 +194,7 @@
 (ert-deftest temme-expand-raw-snippet-bang ()
   (should (string-prefix-p "<!DOCTYPE html>" (temme-expand-string "!")))
   (should (string-match-p "<html lang=\"en\">" (temme-expand-string "!")))
-  (should (string-match-p "<title></title>" (temme-expand-string "!"))))
+  (should (string-match-p "<title>|</title>" (temme-expand-string "!"))))
 
 (ert-deftest temme-expand-raw-snippet-triple-bang ()
   (should (equal (temme-expand-string "!!!") "<!DOCTYPE html>\n")))
