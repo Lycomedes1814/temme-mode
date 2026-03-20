@@ -61,7 +61,8 @@
   text
   repeat
   self-closing
-  children)
+  children
+  group-index)
 
 (cl-defstruct temme-fragment
   roots
@@ -397,7 +398,8 @@ OFFSET shifts the starting position in the word pool for variety."
                 :text (temme-node-text node)
                 :repeat (temme-node-repeat node)
                 :self-closing (temme-node-self-closing node)
-                :children nil)))
+                :children nil
+                :group-index (temme-node-group-index node))))
     (setf (temme-node-children clone)
           (mapcar #'temme--clone-node (temme-node-children node)))
     clone))
@@ -434,8 +436,10 @@ OFFSET shifts the starting position in the word pool for variety."
     fragment)
    (t
     (let (roots last-path)
-      (dotimes (_ count)
+      (dotimes (i count)
         (let ((copy (temme--clone-fragment fragment)))
+          (dolist (root (temme-fragment-roots copy))
+            (setf (temme-node-group-index root) (1+ i)))
           (setq roots (append roots (temme-fragment-roots copy))
                 last-path (temme-fragment-paths copy))))
       (make-temme-fragment :roots roots :paths last-path)))))
@@ -743,11 +747,12 @@ REPEAT-INDEX is the 1-based repetition index, used to vary lorem text."
 PARENT-INDEX, when non-nil, is the repeat index of an ancestor node."
   (let ((ind (or indent 0))
         (count (max 0 (temme-node-repeat node)))
+        (effective-index (or parent-index (temme-node-group-index node)))
         (parts nil))
     (dotimes (i count)
       (let ((idx (1+ i)))
         (push (temme--render-once (temme--number-node node idx) ind
-                                  (if (> count 1) idx parent-index))
+                                  (if (> count 1) idx effective-index))
               parts)))
     (apply #'concat (nreverse parts))))
 
