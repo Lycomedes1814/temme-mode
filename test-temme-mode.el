@@ -24,6 +24,34 @@
   (should (equal (temme-expand-string "#root.card")
                  "<div id=\"root\" class=\"card\"></div>\n")))
 
+(ert-deftest temme-expand-bracket-attributes ()
+  (should (equal (temme-expand-string "input[type=text disabled aria-label='Name']")
+                 "<input type=\"text\" disabled aria-label=\"Name\"></input>\n")))
+
+(ert-deftest temme-expand-merges-id-and-class-attributes ()
+  (should (equal (temme-expand-string "div#x[id=y].a[class='b c']")
+                 "<div id=\"y\" class=\"a b c\"></div>\n")))
+
+(ert-deftest temme-expand-grouping ()
+  (should
+   (equal (temme-expand-string "div>(header>h1{Title})+(main>p{Body})")
+          "<div>\n  <header>\n    <h1>Title</h1>\n  </header>\n  <main>\n    <p>Body</p>\n  </main>\n</div>\n")))
+
+(ert-deftest temme-expand-children-after-multi-root-group ()
+  (should
+   (equal (temme-expand-string "(header+main)>p")
+          "<header>\n  <p></p>\n</header>\n<main>\n  <p></p>\n</main>\n")))
+
+(ert-deftest temme-expand-group-repeat ()
+  (should
+   (equal (temme-expand-string "ul>(li>a)*2")
+          "<ul>\n  <li>\n    <a></a>\n  </li>\n  <li>\n    <a></a>\n  </li>\n</ul>\n")))
+
+(ert-deftest temme-expand-climb-up ()
+  (should
+   (equal (temme-expand-string "div>section>p^aside")
+          "<div>\n  <section>\n    <p></p>\n  </section>\n  <aside></aside>\n</div>\n")))
+
 (ert-deftest temme-expand-command-replaces-region ()
   (with-temp-buffer
     (insert "section>p{Hi}")
