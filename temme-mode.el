@@ -7,13 +7,20 @@
 
 ;;; Commentary:
 
-;; `temme-mode' implements a small subset of Emmet-style abbreviations.
-;; Supported syntax:
+;; `temme-mode' expands a focused subset of Emmet-style abbreviations.
 ;;
-;;   div               => <div></div>
-;;   div#app.main      => <div id="app" class="main"></div>
-;;   ul>li*2           => <ul><li></li><li></li></ul>
-;;   h1.title+p{Hello} => <h1 class="title"></h1><p>Hello</p>
+;; Supported features include plain tags, `#id' and `.class' shorthands,
+;; bracket attributes, text nodes, child/sibling/climb-up operators,
+;; grouping, multipliers, indentation-aware expansion, and self-closing
+;; output for void HTML elements or explicit `.../' abbreviations.
+;;
+;; Examples:
+;;
+;;   div                              => <div></div>
+;;   main#app.shell                   => <main id="app" class="shell"></main>
+;;   ul>li.item*2                     => nested repeated children
+;;   div>(header>h1{Title})+p{Body}   => grouped nested layout
+;;   figure>img.hero[src=cover.jpg]/  => self-closing child
 ;;
 ;; The main entry point is `temme-expand'.
 
