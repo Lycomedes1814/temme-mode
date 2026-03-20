@@ -13,6 +13,7 @@ Emmet-style abbreviations from scratch.
 - Child, sibling, and climb-up operators: `>`, `+`, `^`
 - Grouping, including multi-root group children: `(header+main)>p`
 - Multipliers: `li*3`
+- Item numbering: `li.item$*3` (`$` = sequential, `$$` = zero-padded)
 - Text nodes: `p{Hello}`
 - Indented output starting at the current line indentation
 - Built-in snippets for common patterns (`!`, `btn`, `a:link`, `link:css`, `input:text`, etc.)
@@ -32,18 +33,19 @@ Output:
 <div id="root" class="card"></div>
 ```
 
-Repeated children:
+Repeated children with numbering:
 
 ```text
-ul>li.item*2
+ul>li.item$$*3
 ```
 
 Output:
 
 ```html
 <ul>
-  <li class="item"></li>
-  <li class="item"></li>
+  <li class="item01"></li>
+  <li class="item02"></li>
+  <li class="item03"></li>
 </ul>
 ```
 

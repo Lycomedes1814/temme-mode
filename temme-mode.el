@@ -11,7 +11,7 @@
 ;;
 ;; Supported features include plain tags, `#id' and `.class' shorthands,
 ;; bracket attributes, text nodes, child/sibling/climb-up operators,
-;; grouping, multipliers, indentation-aware expansion, self-closing
+;; grouping, multipliers, item numbering, indentation-aware expansion, self-closing
 ;; output for void HTML elements or explicit `.../' abbreviations,
 ;; and built-in snippets for common patterns.
 ;;
@@ -20,7 +20,7 @@
 ;;   div                              => <div></div>
 ;;   main#app.shell                   => <main id="app" class="shell"></main>
 ;;   #root.card                       => default tag with id/class shorthand
-;;   ul>li.item*2                     => nested repeated children
+;;   ul>li.item$*3                    => numbered repeated children
 ;;   h1.title{Hello}+p{World}         => siblings with text nodes
 ;;   div>section>p^aside              => climb up to add a sibling higher up
 ;;   div>(header>h1{Title})+p{Body}   => grouped nested layout
@@ -218,7 +218,8 @@ These are only matched when the entire abbreviation is the snippet name.")
       (and (>= char ?0) (<= char ?9))
       (eq char ?-)
       (eq char ?_)
-      (eq char ?:)))
+      (eq char ?:)
+      (eq char ?$)))
 
 (defun temme--attr-char-p (char)
   "Return non-nil when CHAR may appear in an unquoted attribute token."
@@ -606,6 +607,33 @@ These are only matched when the entire abbreviation is the snippet name.")
   "Return a string of INDENT spaces."
   (make-string (max 0 indent) ?\s))
 
+(defun temme--substitute-numbering (string index)
+  "Replace runs of `$' in STRING with INDEX, zero-padded to the run length."
+  (if (null string)
+      nil
+    (replace-regexp-in-string
+     "\\$+"
+     (lambda (match)
+       (format (format "%%0%dd" (length match)) index))
+     string t)))
+
+(defun temme--number-node (node index)
+  "Return a shallow copy of NODE with `$' sequences replaced by INDEX."
+  (make-temme-node
+   :tag (temme-node-tag node)
+   :id (temme--substitute-numbering (temme-node-id node) index)
+   :classes (mapcar (lambda (c) (temme--substitute-numbering c index))
+                    (temme-node-classes node))
+   :attrs (mapcar (lambda (attr)
+                    (cons (car attr)
+                          (if (eq (cdr attr) t) t
+                            (temme--substitute-numbering (cdr attr) index))))
+                  (temme-node-attrs node))
+   :text (temme--substitute-numbering (temme-node-text node) index)
+   :repeat (temme-node-repeat node)
+   :self-closing (temme-node-self-closing node)
+   :children (temme-node-children node)))
+
 (defun temme--render-once (node indent)
   "Render NODE once at INDENT spaces, ignoring its repeat count."
   (let ((tag (temme-node-tag node))
@@ -645,9 +673,10 @@ These are only matched when the entire abbreviation is the snippet name.")
 (defun temme-render-node (node &optional indent)
   "Render NODE into an HTML snippet."
   (let ((ind (or indent 0))
+        (count (max 0 (temme-node-repeat node)))
         (parts nil))
-    (dotimes (_ (max 0 (temme-node-repeat node)))
-      (push (temme--render-once node ind) parts))
+    (dotimes (i count)
+      (push (temme--render-once (temme--number-node node (1+ i)) ind) parts))
     (apply #'concat (nreverse parts))))
 
 (defun temme-expand-string (abbrev &optional base-indent)

@@ -199,4 +199,45 @@
 (ert-deftest temme-expand-raw-snippet-triple-bang ()
   (should (equal (temme-expand-string "!!!") "<!DOCTYPE html>\n")))
 
+;; --- Numbering tests ---
+
+(ert-deftest temme-expand-numbering-class ()
+  (should (equal (temme-expand-string "li.item$*3")
+                 (concat "<li class=\"item1\"></li>\n"
+                         "<li class=\"item2\"></li>\n"
+                         "<li class=\"item3\"></li>\n"))))
+
+(ert-deftest temme-expand-numbering-zero-padded ()
+  (should (equal (temme-expand-string "li.item$$*3")
+                 (concat "<li class=\"item01\"></li>\n"
+                         "<li class=\"item02\"></li>\n"
+                         "<li class=\"item03\"></li>\n"))))
+
+(ert-deftest temme-expand-numbering-id ()
+  (should (equal (temme-expand-string "div#sec$*2")
+                 (concat "<div id=\"sec1\"></div>\n"
+                         "<div id=\"sec2\"></div>\n"))))
+
+(ert-deftest temme-expand-numbering-text ()
+  (should (equal (temme-expand-string "p{Item $}*2")
+                 (concat "<p>Item 1</p>\n"
+                         "<p>Item 2</p>\n"))))
+
+(ert-deftest temme-expand-numbering-attr ()
+  (should (equal (temme-expand-string "input[name=field$]*2")
+                 (concat "<input name=\"field1\" />\n"
+                         "<input name=\"field2\" />\n"))))
+
+(ert-deftest temme-expand-numbering-nested ()
+  (should (equal (temme-expand-string "ul>li.item$*2")
+                 (concat "<ul>\n"
+                         "  <li class=\"item1\"></li>\n"
+                         "  <li class=\"item2\"></li>\n"
+                         "</ul>\n"))))
+
+(ert-deftest temme-expand-numbering-no-repeat ()
+  "A single $ without repeat still substitutes with index 1."
+  (should (equal (temme-expand-string "li.item$")
+                 "<li class=\"item1\"></li>\n")))
+
 ;;; test-temme-mode.el ends here

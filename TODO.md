@@ -1,8 +1,8 @@
 # temme-mode TODO
 
 ## Numbering
-- [ ] `$` item numbering in repeated elements (`ul>li.item$*3` → `item1`, `item2`, `item3`)
-- [ ] `$$` zero-padded numbering
+- [x] `$` item numbering in repeated elements (`ul>li.item$*3` → `item1`, `item2`, `item3`)
+- [x] `$$` zero-padded numbering
 - [ ] `$@N` numbering with offset
 - [ ] `@-` reverse numbering direction
 
