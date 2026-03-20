@@ -911,7 +911,7 @@ field markers \"|\"."
 
 ;;;###autoload
 (define-minor-mode temme-mode
-  "Minor mode for basic Emmet-style expansion."
+  "Minor mode for Emmet-style expansion."
   :lighter " Temme"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-c ,") #'temme-expand)
