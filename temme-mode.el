@@ -175,10 +175,10 @@ Each entry is (NAME . PLIST) where PLIST contains :tag and optionally
              "<head>\n"
              "  <meta charset=\"UTF-8\" />\n"
              "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
-             "  <title>Document</title>\n"
+             "  <title></title>\n"
              "</head>\n"
              "<body>\n"
-             "  \n"
+             "  |\n"
              "</body>\n"
              "</html>\n"))
     ("!!!" . ,"<!DOCTYPE html>\n")
@@ -193,10 +193,10 @@ Each entry is (NAME . PLIST) where PLIST contains :tag and optionally
                "<head>\n"
                "  <meta charset=\"UTF-8\" />\n"
                "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
-               "  <title>Document</title>\n"
+               "  <title>|</title>\n"
                "</head>\n"
                "<body>\n"
-               "  \n"
+               "  |\n"
                "</body>\n"
                "</html>\n")))
   "Snippets that expand to raw HTML strings.
@@ -734,21 +734,29 @@ BASE-INDENT is the number of spaces to prepend to top-level elements."
 (defun temme--collect-fields (start end)
   "Find fillable positions between START and END and return markers.
 Fillable positions are empty attribute values, attribute values ending
-in a prefix like \":\" or \"://\", and empty tag content."
-  (let (markers)
+in a prefix like \":\" or \"://\", empty tag content, and explicit
+field markers \"|\"."
+  (let ((end-marker (copy-marker end))
+        markers)
     (save-excursion
+      ;; Explicit field markers: |
+      (goto-char start)
+      (while (search-forward "|" end-marker t)
+        (delete-char -1)
+        (push (copy-marker (point)) markers))
       ;; Attribute values that are empty or end with a prefix character.
       (goto-char start)
-      (while (re-search-forward "=\"\\([^\"]*\\)\"" end t)
+      (while (re-search-forward "=\"\\([^\"]*\\)\"" end-marker t)
         (let ((val (match-string 1)))
           (when (or (string-empty-p val)
                     (string-match-p "[:/+]\\'" val))
             (push (copy-marker (match-end 1)) markers))))
       ;; Empty tag content: ></tag>
       (goto-char start)
-      (while (re-search-forward ">\\(\\)</" end t)
+      (while (re-search-forward ">\\(\\)</" end-marker t)
         (push (copy-marker (match-beginning 1)) markers)))
-    (nreverse markers)))
+    (set-marker end-marker nil)
+    (sort markers #'<)))
 
 (defun temme--activate-fields (start end)
   "Set up field navigation for the region START..END."

@@ -194,7 +194,7 @@
 (ert-deftest temme-expand-raw-snippet-bang ()
   (should (string-prefix-p "<!DOCTYPE html>" (temme-expand-string "!")))
   (should (string-match-p "<html lang=\"en\">" (temme-expand-string "!")))
-  (should (string-match-p "<title>Document</title>" (temme-expand-string "!"))))
+  (should (string-match-p "<title></title>" (temme-expand-string "!"))))
 
 (ert-deftest temme-expand-raw-snippet-triple-bang ()
   (should (equal (temme-expand-string "!!!") "<!DOCTYPE html>\n")))
@@ -308,5 +308,23 @@
     (should temme-field-mode)
     ;; action="" is a field, method="post" is not, and <form></form> content is
     (should (= (length temme--fields) 2))))
+
+(ert-deftest temme-fields-doc ()
+  "doc snippet should place cursor in body via field markers."
+  (temme-test-with-expansion "doc"
+    (should temme-field-mode)
+    ;; Two fields: empty <title></title> and | in body
+    (should (= (length temme--fields) 2))
+    ;; First field: inside <title>
+    (should (= temme--field-index 0))
+    (should (looking-back ">" (line-beginning-position)))
+    (should (looking-at "</title>"))
+    ;; TAB to body
+    (temme-next-field)
+    (should (= temme--field-index 1))
+    (should (looking-at "\n</body>"))
+    ;; TAB past last exits field mode
+    (temme-next-field)
+    (should-not temme-field-mode)))
 
 ;;; test-temme-mode.el ends here
