@@ -170,7 +170,7 @@
   (let ((tag (temme-node-tag node))
         (text (temme-node-text node))
         (children (temme-node-children node)))
-    (format "<%s%s>%s</%s>"
+    (format "<%s%s>%s</%s>\n"
             tag
             (temme--attrs node)
             (concat (or text "")
@@ -209,7 +209,8 @@
     (let ((expansion (temme-expand-string abbrev)))
       (delete-region start end)
       (goto-char start)
-      (insert expansion))))
+      (insert expansion)
+      (indent-region start (point)))))
 
 ;;;###autoload
 (define-minor-mode temme-mode
