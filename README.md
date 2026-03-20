@@ -314,9 +314,9 @@ btn.primary{Submit}
 
 ## Field navigation
 
-After expanding a snippet, `temme-field-mode` activates automatically and
-lets you TAB through fillable positions — empty attribute values, attribute
-values ending in a prefix (like `https://`), and empty tag content.
+After expanding any abbreviation, `temme-field-mode` activates automatically
+and lets you TAB through fillable positions — empty attribute values,
+attribute values ending in a prefix (like `https://`), and empty tag content.
 
 | Key | Action |
 |---|---|
