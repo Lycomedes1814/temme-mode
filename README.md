@@ -9,6 +9,7 @@ Emmet-style abbreviations from scratch.
 - `#id` and `.class` parsing: `section#app.shell`
 - Arbitrary attributes: `input[type=text disabled]`
 - `id` and `class` merging across shorthand and bracket attributes: `div#app.hero[class='wide tall']`
+- Self-closing tags, including void HTML elements and explicit `.../`: `input[type=text]`, `custom-element/`
 - Child, sibling, and climb-up operators: `>`, `+`, `^`
 - Grouping, including multi-root group children: `(header+main)>p`
 - Multipliers: `li*3`
@@ -45,6 +46,21 @@ Output:
 
 ```html
 <div id="app" class="hero wide tall" data-role="card"></div>
+```
+
+Self-closing elements:
+
+```text
+figure>img.hero[src=cover.jpg]/+figcaption{Cover}
+```
+
+Output:
+
+```html
+<figure>
+  <img class="hero" src="cover.jpg" />
+  <figcaption>Cover</figcaption>
+</figure>
 ```
 
 Nested layout:

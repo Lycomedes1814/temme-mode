@@ -26,7 +26,15 @@
 
 (ert-deftest temme-expand-bracket-attributes ()
   (should (equal (temme-expand-string "input[type=text disabled aria-label='Name']")
-                 "<input type=\"text\" disabled aria-label=\"Name\"></input>\n")))
+                 "<input type=\"text\" disabled aria-label=\"Name\" />\n")))
+
+(ert-deftest temme-expand-explicit-self-closing-tag ()
+  (should (equal (temme-expand-string "custom-element.foo[data-x=1]/")
+                 "<custom-element class=\"foo\" data-x=\"1\" />\n")))
+
+(ert-deftest temme-expand-self-closing-child ()
+  (should (equal (temme-expand-string "figure>img.hero[src=cover.jpg]/+figcaption{Cover}")
+                 "<figure>\n  <img class=\"hero\" src=\"cover.jpg\" />\n  <figcaption>Cover</figcaption>\n</figure>\n")))
 
 (ert-deftest temme-expand-merges-id-and-class-attributes ()
   (should (equal (temme-expand-string "div#x[id=y].a[class='b c']")

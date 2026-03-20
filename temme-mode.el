@@ -29,6 +29,7 @@
   attrs
   text
   repeat
+  self-closing
   children)
 
 (cl-defstruct temme-fragment
@@ -48,6 +49,11 @@
   "Number of spaces to indent nested elements."
   :type 'integer
   :group 'temme)
+
+(defconst temme-void-tags
+  '("area" "base" "br" "col" "embed" "hr" "img" "input" "link"
+    "meta" "param" "source" "track" "wbr")
+  "HTML tags that should render without a closing tag.")
 
 (defun temme--alnum-or-symbol-p (char)
   (or (and (>= char ?a) (<= char ?z))
@@ -163,6 +169,7 @@
                                (temme-node-attrs node))
                 :text (temme-node-text node)
                 :repeat (temme-node-repeat node)
+                :self-closing (temme-node-self-closing node)
                 :children nil)))
     (setf (temme-node-children clone)
           (mapcar #'temme--clone-node (temme-node-children node)))
@@ -238,6 +245,7 @@
         (attrs nil)
         (text nil)
         (repeat 1)
+        (self-closing nil)
         (done nil))
     (when (and (< pos (length input))
                (temme--alnum-or-symbol-p (aref input pos)))
@@ -271,6 +279,10 @@
                       (temme--parse-number input (1+ pos))))
            (setq repeat value
                  pos next-pos)))
+        (?/
+         (setq self-closing t
+               pos (1+ pos)
+               done t))
         (_
          (setq pos (temme--skip-space input pos))
          (setq done t))))
@@ -282,6 +294,7 @@
                            :attrs attrs
                            :text text
                            :repeat repeat
+                           :self-closing self-closing
                            :children nil)
           pos)))
 
@@ -396,8 +409,12 @@
 (defun temme--render-once (node indent)
   (let ((tag (temme-node-tag node))
         (text (temme-node-text node))
-        (children (temme-node-children node)))
-    (if children
+        (children (temme-node-children node))
+        (self-closing (or (temme-node-self-closing node)
+                          (member-ignore-case (temme-node-tag node)
+                                              temme-void-tags))))
+    (cond
+     (children
         (format "%s<%s%s>\n%s%s</%s>\n"
                 (temme--indent-string indent)
                 tag
@@ -408,13 +425,19 @@
                  children
                  "")
                 (temme--indent-string indent)
-                tag)
+                tag))
+     (self-closing
+      (format "%s<%s%s />\n"
+              (temme--indent-string indent)
+              tag
+              (temme--attrs node)))
+     (t
       (format "%s<%s%s>%s</%s>\n"
               (temme--indent-string indent)
               tag
               (temme--attrs node)
               (or text "")
-              tag))))
+              tag)))))
 
 (defun temme-render-node (node &optional indent)
   "Render NODE into an HTML snippet."
