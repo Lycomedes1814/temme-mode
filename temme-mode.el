@@ -1,6 +1,6 @@
 ;;; temme-mode.el --- Tiny Emmet-like expansions -*- lexical-binding: t; -*-
 
-;; Author: Codex
+;; Author: Codex, Claude
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience, editing
@@ -88,6 +88,7 @@
     (cons (substring input start pos) pos)))
 
 (defun temme--parse-text (input pos)
+  "Parse text between braces.  Nested braces are not supported."
   (let ((start (1+ pos)))
     (setq pos start)
     (while (and (< pos (length input))
@@ -108,6 +109,7 @@
     (cons (string-to-number (substring input start pos)) pos)))
 
 (defun temme--parse-quoted-string (input pos)
+  "Parse a quoted string value.  Escape sequences are not supported."
   (let ((quote-char (aref input pos))
         (start (1+ pos)))
     (setq pos start)
@@ -171,9 +173,7 @@
                 :tag (temme-node-tag node)
                 :id (temme-node-id node)
                 :classes (copy-sequence (temme-node-classes node))
-                :attrs (mapcar (lambda (attr)
-                                 (cons (car attr) (cdr attr)))
-                               (temme-node-attrs node))
+                :attrs (copy-sequence (temme-node-attrs node))
                 :text (temme-node-text node)
                 :repeat (temme-node-repeat node)
                 :self-closing (temme-node-self-closing node)
@@ -223,6 +223,7 @@
   (cl-subseq path 0 (max 0 (min length (length path)))))
 
 (defun temme--attach-fragment (roots basis-paths fragment)
+  "Attach FRAGMENT into ROOTS at BASIS-PATHS, returning a `temme-fragment'."
   (if basis-paths
       (let (new-paths)
         (dolist (basis-path basis-paths)
@@ -240,9 +241,9 @@
               (setq roots (append roots (temme-fragment-roots copy))
                     new-paths (append new-paths
                                       (temme-fragment-paths copy))))))
-        (cons roots new-paths))
-    (cons (append roots (temme-fragment-roots fragment))
-          (temme-fragment-paths fragment))))
+        (make-temme-fragment :roots roots :paths new-paths))
+    (make-temme-fragment :roots (append roots (temme-fragment-roots fragment))
+                         :paths (temme-fragment-paths fragment))))
 
 (defun temme--parse-element (input pos)
   (setq pos (temme--skip-space input pos))
@@ -293,9 +294,7 @@
         (_
          (setq pos (temme--skip-space input pos))
          (setq done t))))
-    (cons (make-temme-node :tag (if (and tag (not (string-empty-p tag)))
-                                    tag
-                                  temme-default-tag)
+    (cons (make-temme-node :tag (or tag temme-default-tag)
                            :id id
                            :classes (nreverse classes)
                            :attrs attrs
@@ -333,46 +332,45 @@
 
 (defun temme--parse-expression (input &optional pos)
   (setq pos (or pos 0))
-  (pcase-let* ((`(,first-fragment . ,next-pos)
-                 (temme--parse-primary input pos))
-               (`(,roots . ,current-paths)
-                (temme--attach-fragment nil nil first-fragment)))
-    (setq next-pos (temme--skip-space input next-pos))
-    (while (and (< next-pos (length input))
-                (not (eq (aref input next-pos) ?\))))
-      (let ((basis-paths nil))
-        (pcase (aref input next-pos)
-          (?+
-           (setq basis-paths (mapcar (lambda (path)
-                                       (temme--path-prefix path
-                                                           (1- (length path))))
-                                     current-paths)
-                 next-pos (1+ next-pos)))
-          (?>
-           (setq basis-paths current-paths
-                 next-pos (1+ next-pos)))
-          (?^
-           (let ((climbs 0))
-             (while (and (< next-pos (length input))
-                         (eq (aref input next-pos) ?^))
-               (setq climbs (1+ climbs)
-                     next-pos (1+ next-pos)))
-             (setq basis-paths
-                   (mapcar (lambda (path)
-                             (temme--path-prefix path
-                                                 (- (length path) 1 climbs)))
-                           current-paths))))
-          (_
-           (error "Unexpected token at position %d" next-pos)))
-        (pcase-let* ((`(,fragment . ,new-pos)
-                       (temme--parse-primary input next-pos))
-                     (`(,new-roots . ,new-paths)
-                      (temme--attach-fragment roots basis-paths fragment)))
-          (setq roots new-roots
-                current-paths new-paths
-                next-pos (temme--skip-space input new-pos)))))
-    (cons (make-temme-fragment :roots roots :paths current-paths)
-          next-pos)))
+  (pcase-let ((`(,first-fragment . ,next-pos)
+               (temme--parse-primary input pos)))
+    (let ((roots (temme-fragment-roots first-fragment))
+          (current-paths (temme-fragment-paths first-fragment)))
+      (setq next-pos (temme--skip-space input next-pos))
+      (while (and (< next-pos (length input))
+                  (not (eq (aref input next-pos) ?\))))
+        (let ((basis-paths nil))
+          (pcase (aref input next-pos)
+            (?+
+             (setq basis-paths (mapcar (lambda (path)
+                                         (temme--path-prefix path
+                                                             (1- (length path))))
+                                       current-paths)
+                   next-pos (1+ next-pos)))
+            (?>
+             (setq basis-paths current-paths
+                   next-pos (1+ next-pos)))
+            (?^
+             (let ((climbs 0))
+               (while (and (< next-pos (length input))
+                           (eq (aref input next-pos) ?^))
+                 (setq climbs (1+ climbs)
+                       next-pos (1+ next-pos)))
+               (setq basis-paths
+                     (mapcar (lambda (path)
+                               (temme--path-prefix path
+                                                   (- (length path) 1 climbs)))
+                             current-paths))))
+            (_
+             (error "Unexpected token at position %d" next-pos)))
+          (pcase-let ((`(,fragment . ,new-pos)
+                       (temme--parse-primary input next-pos)))
+            (let ((result (temme--attach-fragment roots basis-paths fragment)))
+              (setq roots (temme-fragment-roots result)
+                    current-paths (temme-fragment-paths result)
+                    next-pos (temme--skip-space input new-pos))))))
+      (cons (make-temme-fragment :roots roots :paths current-paths)
+            next-pos))))
 
 (defun temme-parse (abbrev)
   "Parse ABBREV into a list of `temme-node' values."
@@ -421,6 +419,9 @@
                           (member-ignore-case (temme-node-tag node)
                                               temme-void-tags))))
     (cond
+     ;; Children take priority over self-closing: if the user explicitly
+     ;; nests children under a void tag, render them rather than silently
+     ;; dropping them.
      (children
         (format "%s<%s%s>\n%s%s</%s>\n"
                 (temme--indent-string indent)
@@ -448,11 +449,11 @@
 
 (defun temme-render-node (node &optional indent)
   "Render NODE into an HTML snippet."
-  (mapconcat
-   (lambda (_index)
-     (temme--render-once node (or indent 0)))
-   (number-sequence 1 (max 1 (temme-node-repeat node)))
-   ""))
+  (let ((ind (or indent 0))
+        (parts nil))
+    (dotimes (_ (max 1 (temme-node-repeat node)))
+      (push (temme--render-once node ind) parts))
+    (apply #'concat (nreverse parts))))
 
 (defun temme-expand-string (abbrev &optional base-indent)
   "Expand ABBREV into HTML.
