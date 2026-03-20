@@ -1,7 +1,6 @@
 ;;; test-temme-mode.el --- Tests for temme-mode -*- lexical-binding: t; -*-
 
 (require 'ert)
-(require 'cl-lib)
 (load-file "/home/jal/Projects/temme-mode/temme-mode.el")
 
 (ert-deftest temme-expand-simple-tag ()
@@ -14,7 +13,7 @@
 
 (ert-deftest temme-expand-children-and-repeat ()
   (should (equal (temme-expand-string "ul>li.item*2")
-                 "<ul><li class=\"item\"></li>\n<li class=\"item\"></li>\n</ul>\n")))
+                 "<ul>\n  <li class=\"item\"></li>\n  <li class=\"item\"></li>\n</ul>\n")))
 
 (ert-deftest temme-expand-siblings-and-text ()
   (should
@@ -31,18 +30,18 @@
     (goto-char (point-max))
     (temme-expand)
     (should (equal (buffer-string)
-                   "<section><p>Hi</p>\n</section>\n"))))
+                   "<section>\n  <p>Hi</p>\n</section>\n"))))
 
-(ert-deftest temme-expand-command-indents-inserted-region ()
+(ert-deftest temme-expand-string-honors-base-indentation ()
+  (should (equal (temme-expand-string "section>p{Hi}" 4)
+                 "    <section>\n      <p>Hi</p>\n    </section>\n")))
+
+(ert-deftest temme-expand-command-starts-at-current-indentation ()
   (with-temp-buffer
-    (insert "section>p{Hi}")
+    (insert "    section>p{Hi}")
     (goto-char (point-max))
-    (let (indent-call)
-      (cl-letf (((symbol-function 'indent-region)
-                 (lambda (start end &optional _column)
-                   (setq indent-call (cons start end)))))
-        (temme-expand))
-      (should (equal indent-call
-                     (cons (point-min) (point-max)))))))
+    (temme-expand)
+    (should (equal (buffer-string)
+                   "    <section>\n      <p>Hi</p>\n    </section>\n"))))
 
 ;;; test-temme-mode.el ends here

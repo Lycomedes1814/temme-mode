@@ -39,6 +39,11 @@
   :type 'string
   :group 'temme)
 
+(defcustom temme-indent-offset 2
+  "Number of spaces to indent nested elements."
+  :type 'integer
+  :group 'temme)
+
 (defun temme--alnum-or-symbol-p (char)
   (or (and (>= char ?a) (<= char ?z))
       (and (>= char ?A) (<= char ?Z))
@@ -166,28 +171,48 @@
       (push (format " class=\"%s\"" (string-join classes " ")) attrs))
     (apply #'concat (nreverse attrs))))
 
-(defun temme--render-once (node)
+(defun temme--indent-string (indent)
+  (make-string (max 0 indent) ?\s))
+
+(defun temme--render-once (node indent)
   (let ((tag (temme-node-tag node))
         (text (temme-node-text node))
         (children (temme-node-children node)))
-    (format "<%s%s>%s</%s>\n"
-            tag
-            (temme--attrs node)
-            (concat (or text "")
-                    (mapconcat #'temme-render-node children ""))
-            tag)))
+    (if children
+        (format "%s<%s%s>\n%s%s</%s>\n"
+                (temme--indent-string indent)
+                tag
+                (temme--attrs node)
+                (mapconcat
+                 (lambda (child)
+                   (temme-render-node child (+ indent temme-indent-offset)))
+                 children
+                 "")
+                (temme--indent-string indent)
+                tag)
+      (format "%s<%s%s>%s</%s>\n"
+              (temme--indent-string indent)
+              tag
+              (temme--attrs node)
+              (or text "")
+              tag))))
 
-(defun temme-render-node (node)
+(defun temme-render-node (node &optional indent)
   "Render NODE into an HTML snippet."
   (mapconcat
    (lambda (_index)
-     (temme--render-once node))
+     (temme--render-once node (or indent 0)))
    (number-sequence 1 (max 1 (temme-node-repeat node)))
    ""))
 
-(defun temme-expand-string (abbrev)
-  "Expand ABBREV into HTML."
-  (mapconcat #'temme-render-node (temme-parse abbrev) ""))
+(defun temme-expand-string (abbrev &optional base-indent)
+  "Expand ABBREV into HTML.
+BASE-INDENT is the number of spaces to prepend to top-level elements."
+  (mapconcat
+   (lambda (node)
+     (temme-render-node node (or base-indent 0)))
+   (temme-parse abbrev)
+   ""))
 
 (defun temme--bounds-of-abbrev ()
   (save-excursion
@@ -203,14 +228,24 @@
                 (if (use-region-p)
                     (cons (region-beginning) (region-end))
                   (temme--bounds-of-abbrev)))
+               (line-start (save-excursion
+                             (goto-char start)
+                             (line-beginning-position)))
+               (base-indent (save-excursion
+                              (goto-char start)
+                              (current-indentation)))
+               (insert-start (if (string-match-p
+                                  "\\`[[:space:]]*\\'"
+                                  (buffer-substring-no-properties line-start start))
+                                 line-start
+                               start))
                (abbrev (string-trim (buffer-substring-no-properties start end))))
     (when (string-empty-p abbrev)
       (user-error "No abbreviation at point"))
-    (let ((expansion (temme-expand-string abbrev)))
-      (delete-region start end)
-      (goto-char start)
-      (insert expansion)
-      (indent-region start (point)))))
+    (let ((expansion (temme-expand-string abbrev base-indent)))
+      (delete-region insert-start end)
+      (goto-char insert-start)
+      (insert expansion))))
 
 ;;;###autoload
 (define-minor-mode temme-mode
