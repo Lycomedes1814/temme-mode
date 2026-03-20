@@ -16,6 +16,7 @@ Emmet-style abbreviations from scratch.
 - Item numbering: `li.item$*3` (`$` = sequential, `$$` = zero-padded)
 - Text nodes: `p{Hello}`
 - Indented output starting at the current line indentation
+- Lorem ipsum placeholder text: `lorem`, `lorem10`, `p>lorem5`
 - Built-in snippets for common patterns (`!`, `btn`, `a:link`, `link:css`, `input:text`, etc.)
 - Interactive expansion command: `M-x temme-expand` or `C-c ,`
 - Post-expansion field navigation: TAB through empty attributes and tag content (`temme-field-mode`)
@@ -158,6 +159,51 @@ Output:
   </li>
   <li>
     <a></a>
+  </li>
+</ul>
+```
+
+Lorem ipsum placeholder text:
+
+```text
+lorem5
+```
+
+Output:
+
+```text
+Lorem ipsum dolor sit amet.
+```
+
+Custom word count inside an element:
+
+```text
+p>lorem10
+```
+
+Output:
+
+```html
+<p>
+  Lorem ipsum dolor sit amet consectetur adipisicing elit ab accusantium.
+</p>
+```
+
+Repeated elements get varied text automatically:
+
+```text
+ul>li*2>lorem3
+```
+
+Output:
+
+```html
+<ul>
+  <li>
+    Lorem ipsum dolor.
+  </li>
+  <li>
+    Sit amet consectetur.
   </li>
 </ul>
 ```

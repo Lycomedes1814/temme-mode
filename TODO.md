@@ -14,7 +14,7 @@
 - [ ] CSS vendor prefixes (`-webkit-`, `-moz-`, etc.)
 
 ## Lorem ipsum
-- [ ] `lorem` / `lorem10` placeholder text generation
+- [x] `lorem` / `lorem10` placeholder text generation
 
 ## Wrap with abbreviation
 - [ ] Wrapping selected text/lines with an abbreviation

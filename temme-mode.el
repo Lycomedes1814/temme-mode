@@ -211,6 +211,65 @@ These are only matched when the entire abbreviation is the snippet name.")
     "meta" "param" "source" "track" "wbr")
   "HTML tags that should render without a closing tag.")
 
+(defconst temme--lorem-words
+  ["lorem" "ipsum" "dolor" "sit" "amet" "consectetur"
+   "adipisicing" "elit" "ab" "accusantium" "accusamus"
+   "ad" "adipisci" "alias" "aliquam" "aliquid" "animi"
+   "aperiam" "architecto" "aspernatur" "assumenda" "at"
+   "atque" "aut" "autem" "beatae" "blanditiis" "commodi"
+   "consequatur" "consequuntur" "corporis" "corrupti"
+   "culpa" "cum" "cumque" "cupiditate" "debitis" "delectus"
+   "deleniti" "deserunt" "dicta" "dignissimos" "distinctio"
+   "dolore" "dolorem" "doloremque" "dolores" "doloribus"
+   "dolorum" "ducimus" "ea" "eaque" "earum" "eius"
+   "eligendi" "enim" "error" "esse" "est" "et" "eum"
+   "eveniet" "ex" "excepturi" "exercitationem" "expedita"
+   "explicabo" "facere" "facilis" "fuga" "fugiat" "fugit"
+   "harum" "hic" "id" "illo" "impedit" "in" "incidunt"
+   "inventore" "ipsa" "ipsam" "iste" "itaque" "iure"
+   "iusto" "labore" "laboriosam" "laborum" "laudantium"
+   "libero" "magnam" "magni" "maiores" "maxime" "minima"
+   "minus" "modi" "molestiae" "molestias" "mollitia" "nam"
+   "natus" "necessitatibus" "nemo" "neque" "nesciunt"
+   "nihil" "nisi" "nobis" "non" "nostrum" "nulla" "numquam"
+   "obcaecati" "occaecati" "odio" "odit" "officia"
+   "officiis" "omnis" "optio" "pariatur" "perferendis"
+   "perspiciatis" "placeat" "porro" "possimus" "praesentium"
+   "provident" "quae" "quaerat" "quam" "quas" "quasi"
+   "qui" "quia" "quibusdam" "quidem" "quis" "quisquam"
+   "quo" "quod" "quos" "ratione" "recusandae" "reiciendis"
+   "rem" "repellat" "repellendus" "reprehenderit"
+   "repudiandae" "rerum" "sapiente" "sed" "sequi"
+   "similique" "sint" "soluta" "sunt" "suscipit" "tempora"
+   "temporibus" "tenetur" "totam" "ullam" "unde" "ut"
+   "vel" "velit" "veniam" "veritatis" "vero" "vitae"
+   "voluptas" "voluptate" "voluptatem" "voluptates"
+   "voluptatibus" "voluptatum"]
+  "Word pool for lorem ipsum placeholder text generation.")
+
+(defun temme--lorem-p (tag)
+  "Return the word count if TAG is a lorem abbreviation, or nil."
+  (when (string-match "\\`lorem\\([0-9]*\\)\\'" tag)
+    (let ((n (match-string 1 tag)))
+      (if (string-empty-p n) 30 (string-to-number n)))))
+
+(defun temme--lorem-generate (count &optional offset)
+  "Generate COUNT words of lorem ipsum text.
+OFFSET shifts the starting position in the word pool for variety."
+  (let* ((pool temme--lorem-words)
+         (len (length pool))
+         (start (mod (or offset 0) len))
+         (words nil))
+    (dotimes (i count)
+      (push (aref pool (mod (+ start i) len)) words))
+    (setq words (nreverse words))
+    (if (= count 1)
+        (concat (capitalize (car words)) ".")
+      (concat (capitalize (car words))
+              " "
+              (mapconcat #'identity (cdr words) " ")
+              "."))))
+
 (defun temme--alnum-or-symbol-p (char)
   "Return non-nil when CHAR is valid in a tag or attribute name."
   (or (and (>= char ?a) (<= char ?z))
@@ -634,15 +693,23 @@ These are only matched when the entire abbreviation is the snippet name.")
    :self-closing (temme-node-self-closing node)
    :children (temme-node-children node)))
 
-(defun temme--render-once (node indent)
-  "Render NODE once at INDENT spaces, ignoring its repeat count."
+(defun temme--render-once (node indent &optional repeat-index)
+  "Render NODE once at INDENT spaces, ignoring its repeat count.
+REPEAT-INDEX is the 1-based repetition index, used to vary lorem text."
   (let ((tag (temme-node-tag node))
         (text (temme-node-text node))
         (children (temme-node-children node))
         (self-closing (or (temme-node-self-closing node)
                           (member-ignore-case (temme-node-tag node)
-                                              temme-void-tags))))
+                                              temme-void-tags)))
+        (lorem-count (temme--lorem-p (temme-node-tag node))))
     (cond
+     (lorem-count
+      (format "%s%s\n"
+              (temme--indent-string indent)
+              (temme--lorem-generate
+               lorem-count
+               (* (1- (or repeat-index 1)) lorem-count))))
      ((and text children)
       (error "Mixed text and child elements are not supported"))
      (children
@@ -652,7 +719,8 @@ These are only matched when the entire abbreviation is the snippet name.")
                 (temme--attrs node)
                 (mapconcat
                  (lambda (child)
-                   (temme-render-node child (+ indent temme-indent-offset)))
+                   (temme-render-node child (+ indent temme-indent-offset)
+                                      repeat-index))
                  children
                  "")
                 (temme--indent-string indent)
@@ -670,13 +738,17 @@ These are only matched when the entire abbreviation is the snippet name.")
               (if text (temme--escape-text text) "")
               tag)))))
 
-(defun temme-render-node (node &optional indent)
-  "Render NODE into an HTML snippet."
+(defun temme-render-node (node &optional indent parent-index)
+  "Render NODE into an HTML snippet.
+PARENT-INDEX, when non-nil, is the repeat index of an ancestor node."
   (let ((ind (or indent 0))
         (count (max 0 (temme-node-repeat node)))
         (parts nil))
     (dotimes (i count)
-      (push (temme--render-once (temme--number-node node (1+ i)) ind) parts))
+      (let ((idx (1+ i)))
+        (push (temme--render-once (temme--number-node node idx) ind
+                                  (if (> count 1) idx parent-index))
+              parts)))
     (apply #'concat (nreverse parts))))
 
 (defun temme-expand-string (abbrev &optional base-indent)
@@ -756,7 +828,16 @@ field markers \"|\"."
       (while (re-search-forward ">\\(\\)</" end-marker t)
         (push (copy-marker (match-beginning 1)) markers)))
     (set-marker end-marker nil)
-    (sort markers #'<)))
+    ;; Sort and deduplicate markers at the same position.
+    (setq markers (sort markers #'<))
+    (let ((prev nil)
+          (deduped nil))
+      (dolist (m markers)
+        (if (and prev (= (marker-position prev) (marker-position m)))
+            (set-marker m nil)
+          (push m deduped)
+          (setq prev m)))
+      (nreverse deduped))))
 
 (defun temme--activate-fields (start end)
   "Set up field navigation for the region START..END."

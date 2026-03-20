@@ -327,4 +327,47 @@
     (temme-next-field)
     (should-not temme-field-mode)))
 
+;;; Lorem ipsum ---------------------------------------------------------------
+
+(ert-deftest temme-lorem-default-30-words ()
+  "lorem should generate 30 words of placeholder text."
+  (let ((result (temme-expand-string "lorem")))
+    (should (string-prefix-p "Lorem ipsum" result))
+    (should (string-suffix-p ".\n" result))
+    ;; 30 words
+    (should (= 30 (length (split-string (string-trim result)))))))
+
+(ert-deftest temme-lorem-custom-count ()
+  "lorem5 should generate exactly 5 words."
+  (let ((result (temme-expand-string "lorem5")))
+    (should (string-prefix-p "Lorem" result))
+    (should (string-suffix-p ".\n" result))
+    (should (= 5 (length (split-string (string-trim result)))))))
+
+(ert-deftest temme-lorem-one-word ()
+  "lorem1 should generate a single capitalized word with period."
+  (should (equal (temme-expand-string "lorem1")
+                 "Lorem.\n")))
+
+(ert-deftest temme-lorem-as-child ()
+  "p>lorem5 should render lorem text inside a p element."
+  (let ((result (temme-expand-string "p>lorem5")))
+    (should (string-prefix-p "<p>\n" result))
+    (should (string-suffix-p "</p>\n" result))
+    (should (string-match-p "  Lorem" result))))
+
+(ert-deftest temme-lorem-repeated-varies ()
+  "ul>li*2>lorem3 should produce different text for each li."
+  (let ((result (temme-expand-string "ul>li*2>lorem3")))
+    ;; First li starts with "Lorem ipsum dolor"
+    (should (string-match-p "Lorem ipsum dolor" result))
+    ;; Collect the two lorem lines
+    (let ((lines (seq-filter (lambda (s)
+                               (string-match-p "^\\s-*[A-Z]" s))
+                             (split-string result "\n"))))
+      (should (= 2 (length lines)))
+      ;; The two lines should have different text
+      (should-not (string= (string-trim (nth 0 lines))
+                            (string-trim (nth 1 lines)))))))
+
 ;;; test-temme-mode.el ends here
