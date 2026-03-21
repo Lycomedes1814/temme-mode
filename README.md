@@ -1,7 +1,25 @@
 # temme-mode
 
-`temme-mode` is a rewrite of emmet-mode, aiming for a clean and modern codebase
-while implementing all the useful features of Emmet (WIP).
+`temme-mode` is an Emacs minor mode that expands short CSS-selector-like
+abbreviations into full HTML. Type `ul>li.item$*3`, hit `C-c ,`, and get:
+
+```html
+<ul>
+  <li class="item1"></li>
+  <li class="item2"></li>
+  <li class="item3"></li>
+</ul>
+```
+
+It supports nesting, siblings, grouping, multipliers, numbering, text content,
+lorem ipsum generation, and a library of built-in snippets — all from a single
+compact abbreviation. After expansion, TAB through empty attributes and tag
+content to fill them in.
+
+This is a from-scratch rewrite of
+[emmet-mode](https://github.com/smihica/emmet-mode) with a clean single-file
+codebase, lexical binding, and a straightforward parse → render → insert
+pipeline. Work in progress.
 
 ## Table of contents
 
