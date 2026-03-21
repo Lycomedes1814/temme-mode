@@ -370,4 +370,59 @@
       (should-not (string= (string-trim (nth 0 lines))
                             (string-trim (nth 1 lines)))))))
 
+;;; Preview tests -------------------------------------------------------------
+
+(ert-deftest temme-preview-creates-overlay ()
+  "Preview should create an overlay covering the abbreviation region."
+  (with-temp-buffer
+    (temme-mode 1)
+    (insert "div.foo")
+    (temme-preview)
+    (should (overlayp temme--preview-overlay))
+    (should (= (overlay-start temme--preview-overlay) (line-beginning-position)))
+    (should (= (overlay-end temme--preview-overlay) (point)))
+    (should (string= (overlay-get temme--preview-overlay 'display)
+                      (propertize "<div class=\"foo\"></div>"
+                                  'face 'temme-preview-face)))
+    (temme--preview-cleanup)))
+
+(ert-deftest temme-preview-accept-expands ()
+  "Accepting a preview should produce the correct expansion."
+  (with-temp-buffer
+    (temme-mode 1)
+    (insert "p")
+    (temme-preview)
+    (should (overlayp temme--preview-overlay))
+    (temme-preview-accept)
+    (should-not temme--preview-overlay)
+    (should (string= (buffer-string) "<p></p>\n"))))
+
+(ert-deftest temme-preview-dismiss-leaves-buffer ()
+  "Dismissing a preview should leave buffer unchanged and remove overlay."
+  (with-temp-buffer
+    (temme-mode 1)
+    (insert "span")
+    (temme-preview)
+    (should (overlayp temme--preview-overlay))
+    (temme-preview-dismiss)
+    (should-not temme--preview-overlay)
+    (should (string= (buffer-string) "span"))))
+
+(ert-deftest temme-preview-invalid-abbreviation ()
+  "Invalid abbreviation should show message and create no overlay."
+  (with-temp-buffer
+    (temme-mode 1)
+    (insert ">>>")
+    (temme-preview)
+    (should-not temme--preview-overlay)
+    (should (string= (buffer-string) ">>>"))))
+
+(ert-deftest temme-preview-cleanup-idempotent ()
+  "Calling cleanup with no active preview should not error."
+  (with-temp-buffer
+    (temme-mode 1)
+    (should-not temme--preview-overlay)
+    (temme--preview-cleanup)
+    (should-not temme--preview-overlay)))
+
 ;;; test-temme-mode.el ends here

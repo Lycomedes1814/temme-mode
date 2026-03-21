@@ -97,6 +97,11 @@
   :type 'integer
   :group 'temme)
 
+(defface temme-preview-face
+  '((t :inherit shadow :slant italic))
+  "Face for expansion preview overlays."
+  :group 'temme)
+
 (defconst temme--snippets
   '(;; Tag aliases
     ("btn"           :tag "button")
@@ -788,6 +793,9 @@ BASE-INDENT is the number of spaces to prepend to top-level elements."
 (defvar-local temme--field-end nil
   "Marker at the end of the expanded snippet.")
 
+(defvar-local temme--preview-overlay nil
+  "Overlay showing the current expansion preview, or nil.")
+
 (defvar temme-field-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") #'temme-next-field)
@@ -887,6 +895,65 @@ field markers \"|\"."
 
 ;;; Expansion ----------------------------------------------------------------
 
+(defun temme--preview-cleanup ()
+  "Remove the active preview overlay if any."
+  (when (overlayp temme--preview-overlay)
+    (delete-overlay temme--preview-overlay))
+  (setq temme--preview-overlay nil))
+
+(defun temme-preview-accept ()
+  "Accept the previewed expansion."
+  (interactive)
+  (temme--preview-cleanup)
+  (temme-expand))
+
+(defun temme-preview-dismiss ()
+  "Dismiss the expansion preview."
+  (interactive)
+  (temme--preview-cleanup))
+
+(defun temme-preview ()
+  "Show a preview of the expansion at point in an overlay.
+Press RET or TAB to accept, C-g to dismiss."
+  (interactive)
+  (temme--preview-cleanup)
+  (pcase-let* ((`(,start . ,end)
+                (if (use-region-p)
+                    (cons (region-beginning) (region-end))
+                  (temme--bounds-of-abbrev)))
+               (line-start (save-excursion
+                             (goto-char start)
+                             (line-beginning-position)))
+               (base-indent (save-excursion
+                              (goto-char start)
+                              (current-indentation)))
+               (insert-start (if (string-match-p
+                                  "\\`[[:space:]]*\\'"
+                                  (buffer-substring-no-properties line-start start))
+                                 line-start
+                               start))
+               (abbrev (string-trim (buffer-substring-no-properties start end))))
+    (when (string-empty-p abbrev)
+      (user-error "No abbreviation at point"))
+    (condition-case nil
+        (let* ((expansion (temme-expand-string abbrev base-indent))
+               (display-text (string-remove-suffix "\n" expansion))
+               (ov (make-overlay insert-start end)))
+          (overlay-put ov 'display
+                       (propertize display-text 'face 'temme-preview-face))
+          (setq temme--preview-overlay ov)
+          (set-transient-map
+           (let ((map (make-sparse-keymap)))
+             (define-key map (kbd "RET") #'temme-preview-accept)
+             (define-key map (kbd "<return>") #'temme-preview-accept)
+             (define-key map (kbd "TAB") #'temme-preview-accept)
+             (define-key map (kbd "<tab>") #'temme-preview-accept)
+             (define-key map (kbd "C-g") #'temme-preview-dismiss)
+             map)
+           (lambda () (overlayp temme--preview-overlay))
+           #'temme--preview-cleanup))
+      (error (message "Invalid abbreviation: %s" abbrev)))))
+
 (defun temme--bounds-of-abbrev ()
   "Return the bounds of the abbreviation around point."
   (save-excursion
@@ -929,6 +996,7 @@ field markers \"|\"."
   :lighter " Temme"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-c ,") #'temme-expand)
+            (define-key map (kbd "C-c .") #'temme-preview)
             map))
 
 (provide 'temme-mode)
