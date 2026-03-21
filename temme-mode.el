@@ -771,16 +771,18 @@ PARENT-INDEX, when non-nil, is the repeat index of an ancestor node."
   "Expand ABBREV into HTML.
 BASE-INDENT is the number of spaces to prepend to top-level elements."
   (let ((raw (cdr (assoc abbrev temme--raw-snippets))))
-    (if raw
-        (if (and base-indent (> base-indent 0))
-            (let ((prefix (temme--indent-string base-indent)))
-              (replace-regexp-in-string "^\\(.\\)" (concat prefix "\\1") raw))
-          raw)
-      (mapconcat
-       (lambda (node)
-         (temme-render-node node (or base-indent 0)))
-       (temme-parse abbrev)
-       ""))))
+    (string-remove-suffix
+     "\n"
+     (if raw
+         (if (and base-indent (> base-indent 0))
+             (let ((prefix (temme--indent-string base-indent)))
+               (replace-regexp-in-string "^\\(.\\)" (concat prefix "\\1") raw))
+           raw)
+       (mapconcat
+        (lambda (node)
+          (temme-render-node node (or base-indent 0)))
+        (temme-parse abbrev)
+        "")))))
 
 ;;; Field navigation ---------------------------------------------------------
 

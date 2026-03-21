@@ -5,55 +5,55 @@
 
 (ert-deftest temme-expand-simple-tag ()
   (should (equal (temme-expand-string "div")
-                 "<div></div>\n")))
+                 "<div></div>")))
 
 (ert-deftest temme-expand-id-and-class ()
   (should (equal (temme-expand-string "main#app.shell")
-                 "<main id=\"app\" class=\"shell\"></main>\n")))
+                 "<main id=\"app\" class=\"shell\"></main>")))
 
 (ert-deftest temme-expand-children-and-repeat ()
   (should (equal (temme-expand-string "ul>li.item*2")
-                 "<ul>\n  <li class=\"item\"></li>\n  <li class=\"item\"></li>\n</ul>\n")))
+                 "<ul>\n  <li class=\"item\"></li>\n  <li class=\"item\"></li>\n</ul>")))
 
 (ert-deftest temme-expand-siblings-and-text ()
   (should
    (equal (temme-expand-string "h1.title{Hello}+p{World}")
-          "<h1 class=\"title\">Hello</h1>\n<p>World</p>\n")))
+          "<h1 class=\"title\">Hello</h1>\n<p>World</p>")))
 
 (ert-deftest temme-expand-default-tag ()
   (should (equal (temme-expand-string "#root.card")
-                 "<div id=\"root\" class=\"card\"></div>\n")))
+                 "<div id=\"root\" class=\"card\"></div>")))
 
 (ert-deftest temme-expand-bracket-attributes ()
   (should (equal (temme-expand-string "input[type=text disabled aria-label='Name']")
-                 "<input type=\"text\" disabled aria-label=\"Name\" />\n")))
+                 "<input type=\"text\" disabled aria-label=\"Name\" />")))
 
 (ert-deftest temme-expand-explicit-self-closing-tag ()
   (should (equal (temme-expand-string "custom-element.foo[data-x=1]/")
-                 "<custom-element class=\"foo\" data-x=\"1\" />\n")))
+                 "<custom-element class=\"foo\" data-x=\"1\" />")))
 
 (ert-deftest temme-expand-self-closing-child ()
   (should (equal (temme-expand-string "figure>img.hero[src=cover.jpg]/+figcaption{Cover}")
-                 "<figure>\n  <img class=\"hero\" src=\"cover.jpg\" />\n  <figcaption>Cover</figcaption>\n</figure>\n")))
+                 "<figure>\n  <img class=\"hero\" src=\"cover.jpg\" />\n  <figcaption>Cover</figcaption>\n</figure>")))
 
 (ert-deftest temme-expand-merges-id-and-class-attributes ()
   (should (equal (temme-expand-string "div#x[id=y].a[class='b c']")
-                 "<div id=\"y\" class=\"a b c\"></div>\n")))
+                 "<div id=\"y\" class=\"a b c\"></div>")))
 
 (ert-deftest temme-expand-grouping ()
   (should
    (equal (temme-expand-string "div>(header>h1{Title})+(main>p{Body})")
-          "<div>\n  <header>\n    <h1>Title</h1>\n  </header>\n  <main>\n    <p>Body</p>\n  </main>\n</div>\n")))
+          "<div>\n  <header>\n    <h1>Title</h1>\n  </header>\n  <main>\n    <p>Body</p>\n  </main>\n</div>")))
 
 (ert-deftest temme-expand-children-after-multi-root-group ()
   (should
    (equal (temme-expand-string "(header+main)>p")
-          "<header>\n  <p></p>\n</header>\n<main>\n  <p></p>\n</main>\n")))
+          "<header>\n  <p></p>\n</header>\n<main>\n  <p></p>\n</main>")))
 
 (ert-deftest temme-expand-group-repeat ()
   (should
    (equal (temme-expand-string "ul>(li>a)*2")
-          "<ul>\n  <li>\n    <a></a>\n  </li>\n  <li>\n    <a></a>\n  </li>\n</ul>\n")))
+          "<ul>\n  <li>\n    <a></a>\n  </li>\n  <li>\n    <a></a>\n  </li>\n</ul>")))
 
 (ert-deftest temme-expand-zero-repeat-produces-no-output ()
   (should (equal (temme-expand-string "li*0") ""))
@@ -62,15 +62,15 @@
 (ert-deftest temme-expand-climb-up ()
   (should
    (equal (temme-expand-string "div>section>p^aside")
-          "<div>\n  <section>\n    <p></p>\n  </section>\n  <aside></aside>\n</div>\n")))
+          "<div>\n  <section>\n    <p></p>\n  </section>\n  <aside></aside>\n</div>")))
 
 (ert-deftest temme-expand-escapes-text-and-attribute-values ()
   (should
    (equal (temme-expand-string "p{<x>&}")
-          "<p>&lt;x&gt;&amp;</p>\n"))
+          "<p>&lt;x&gt;&amp;</p>"))
   (should
    (equal (temme-expand-string "div[data-x='a&b\"c<d>']")
-          "<div data-x=\"a&amp;b&quot;c&lt;d&gt;\"></div>\n")))
+          "<div data-x=\"a&amp;b&quot;c&lt;d&gt;\"></div>")))
 
 (ert-deftest temme-expand-rejects-empty-shorthand-names ()
   (should-error (temme-expand-string "div."))
@@ -85,11 +85,11 @@
     (goto-char (point-max))
     (temme-expand)
     (should (equal (buffer-string)
-                   "<section>\n  <p>Hi</p>\n</section>\n"))))
+                   "<section>\n  <p>Hi</p>\n</section>"))))
 
 (ert-deftest temme-expand-string-honors-base-indentation ()
   (should (equal (temme-expand-string "section>p{Hi}" 4)
-                 "    <section>\n      <p>Hi</p>\n    </section>\n")))
+                 "    <section>\n      <p>Hi</p>\n    </section>")))
 
 (ert-deftest temme-expand-command-starts-at-current-indentation ()
   (with-temp-buffer
@@ -97,99 +97,99 @@
     (goto-char (point-max))
     (temme-expand)
     (should (equal (buffer-string)
-                   "    <section>\n      <p>Hi</p>\n    </section>\n"))))
+                   "    <section>\n      <p>Hi</p>\n    </section>"))))
 
 ;; --- Snippet tests ---
 
 (ert-deftest temme-expand-snippet-btn ()
   (should (equal (temme-expand-string "btn")
-                 "<button></button>\n")))
+                 "<button></button>")))
 
 (ert-deftest temme-expand-snippet-btn-with-class ()
   (should (equal (temme-expand-string "btn.primary{Submit}")
-                 "<button class=\"primary\">Submit</button>\n")))
+                 "<button class=\"primary\">Submit</button>")))
 
 (ert-deftest temme-expand-snippet-a-link ()
   (should (equal (temme-expand-string "a:link")
-                 "<a href=\"https://\"></a>\n")))
+                 "<a href=\"https://\"></a>")))
 
 (ert-deftest temme-expand-snippet-a-mail ()
   (should (equal (temme-expand-string "a:mail")
-                 "<a href=\"mailto:\"></a>\n")))
+                 "<a href=\"mailto:\"></a>")))
 
 (ert-deftest temme-expand-snippet-link-css ()
   (should (equal (temme-expand-string "link:css")
-                 "<link rel=\"stylesheet\" href=\"\" />\n")))
+                 "<link rel=\"stylesheet\" href=\"\" />")))
 
 (ert-deftest temme-expand-snippet-link-favicon ()
   (should (equal (temme-expand-string "link:favicon")
-                 "<link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\" />\n")))
+                 "<link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\" />")))
 
 (ert-deftest temme-expand-snippet-script-src ()
   (should (equal (temme-expand-string "script:src")
-                 "<script src=\"\"></script>\n")))
+                 "<script src=\"\"></script>")))
 
 (ert-deftest temme-expand-snippet-input-text ()
   (should (equal (temme-expand-string "input:text")
-                 "<input id=\"\" type=\"text\" name=\"\" />\n")))
+                 "<input id=\"\" type=\"text\" name=\"\" />")))
 
 (ert-deftest temme-expand-snippet-input-hidden ()
   (should (equal (temme-expand-string "input:h")
-                 "<input type=\"hidden\" name=\"\" />\n")))
+                 "<input type=\"hidden\" name=\"\" />")))
 
 (ert-deftest temme-expand-snippet-input-checkbox ()
   (should (equal (temme-expand-string "input:c")
-                 "<input id=\"\" type=\"checkbox\" name=\"\" />\n")))
+                 "<input id=\"\" type=\"checkbox\" name=\"\" />")))
 
 (ert-deftest temme-expand-snippet-input-submit ()
   (should (equal (temme-expand-string "input:s")
-                 "<input type=\"submit\" value=\"\" />\n")))
+                 "<input type=\"submit\" value=\"\" />")))
 
 (ert-deftest temme-expand-snippet-form-post ()
   (should (equal (temme-expand-string "form:post")
-                 "<form action=\"\" method=\"post\"></form>\n")))
+                 "<form action=\"\" method=\"post\"></form>")))
 
 (ert-deftest temme-expand-snippet-meta-vp ()
   (should (equal (temme-expand-string "meta:vp")
-                 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n")))
+                 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />")))
 
 (ert-deftest temme-expand-snippet-tag-aliases ()
-  (should (equal (temme-expand-string "bq") "<blockquote></blockquote>\n"))
-  (should (equal (temme-expand-string "sect") "<section></section>\n"))
-  (should (equal (temme-expand-string "hdr") "<header></header>\n"))
-  (should (equal (temme-expand-string "ftr") "<footer></footer>\n"))
-  (should (equal (temme-expand-string "fig") "<figure></figure>\n"))
-  (should (equal (temme-expand-string "str") "<strong></strong>\n"))
-  (should (equal (temme-expand-string "mn") "<main></main>\n"))
-  (should (equal (temme-expand-string "dlg") "<dialog></dialog>\n"))
-  (should (equal (temme-expand-string "det") "<details></details>\n")))
+  (should (equal (temme-expand-string "bq") "<blockquote></blockquote>"))
+  (should (equal (temme-expand-string "sect") "<section></section>"))
+  (should (equal (temme-expand-string "hdr") "<header></header>"))
+  (should (equal (temme-expand-string "ftr") "<footer></footer>"))
+  (should (equal (temme-expand-string "fig") "<figure></figure>"))
+  (should (equal (temme-expand-string "str") "<strong></strong>"))
+  (should (equal (temme-expand-string "mn") "<main></main>"))
+  (should (equal (temme-expand-string "dlg") "<dialog></dialog>"))
+  (should (equal (temme-expand-string "det") "<details></details>")))
 
 (ert-deftest temme-expand-snippet-in-expression ()
   (should (equal (temme-expand-string "div>btn.primary{Go}+a:link")
                  (concat "<div>\n"
                          "  <button class=\"primary\">Go</button>\n"
                          "  <a href=\"https://\"></a>\n"
-                         "</div>\n"))))
+                         "</div>"))))
 
 (ert-deftest temme-expand-snippet-attr-override ()
   (should (equal (temme-expand-string "a:link[href=https://example.com]")
-                 "<a href=\"https://\" href=\"https://example.com\"></a>\n")))
+                 "<a href=\"https://\" href=\"https://example.com\"></a>")))
 
 (ert-deftest temme-expand-snippet-ul-plus ()
   (should (equal (temme-expand-string "ul+")
-                 "<ul>\n  <li></li>\n</ul>\n")))
+                 "<ul>\n  <li></li>\n</ul>")))
 
 (ert-deftest temme-expand-snippet-dl-plus ()
   (should (equal (temme-expand-string "dl+")
-                 "<dl>\n  <dt></dt>\n  <dd></dd>\n</dl>\n")))
+                 "<dl>\n  <dt></dt>\n  <dd></dd>\n</dl>")))
 
 (ert-deftest temme-expand-snippet-table-plus ()
   (should (equal (temme-expand-string "table+")
-                 "<table>\n  <tr>\n    <td></td>\n  </tr>\n</table>\n")))
+                 "<table>\n  <tr>\n    <td></td>\n  </tr>\n</table>")))
 
 (ert-deftest temme-expand-snippet-select-plus ()
   (should (equal (temme-expand-string "select+")
-                 "<select>\n  <option value=\"\"></option>\n</select>\n")))
+                 "<select>\n  <option value=\"\"></option>\n</select>")))
 
 (ert-deftest temme-expand-raw-snippet-bang ()
   (should (string-prefix-p "<!DOCTYPE html>" (temme-expand-string "!")))
@@ -197,7 +197,7 @@
   (should (string-match-p "<title>|</title>" (temme-expand-string "!"))))
 
 (ert-deftest temme-expand-raw-snippet-triple-bang ()
-  (should (equal (temme-expand-string "!!!") "<!DOCTYPE html>\n")))
+  (should (equal (temme-expand-string "!!!") "<!DOCTYPE html>")))
 
 ;; --- Numbering tests ---
 
@@ -205,40 +205,40 @@
   (should (equal (temme-expand-string "li.item$*3")
                  (concat "<li class=\"item1\"></li>\n"
                          "<li class=\"item2\"></li>\n"
-                         "<li class=\"item3\"></li>\n"))))
+                         "<li class=\"item3\"></li>"))))
 
 (ert-deftest temme-expand-numbering-zero-padded ()
   (should (equal (temme-expand-string "li.item$$*3")
                  (concat "<li class=\"item01\"></li>\n"
                          "<li class=\"item02\"></li>\n"
-                         "<li class=\"item03\"></li>\n"))))
+                         "<li class=\"item03\"></li>"))))
 
 (ert-deftest temme-expand-numbering-id ()
   (should (equal (temme-expand-string "div#sec$*2")
                  (concat "<div id=\"sec1\"></div>\n"
-                         "<div id=\"sec2\"></div>\n"))))
+                         "<div id=\"sec2\"></div>"))))
 
 (ert-deftest temme-expand-numbering-text ()
   (should (equal (temme-expand-string "p{Item $}*2")
                  (concat "<p>Item 1</p>\n"
-                         "<p>Item 2</p>\n"))))
+                         "<p>Item 2</p>"))))
 
 (ert-deftest temme-expand-numbering-attr ()
   (should (equal (temme-expand-string "input[name=field$]*2")
                  (concat "<input name=\"field1\" />\n"
-                         "<input name=\"field2\" />\n"))))
+                         "<input name=\"field2\" />"))))
 
 (ert-deftest temme-expand-numbering-nested ()
   (should (equal (temme-expand-string "ul>li.item$*2")
                  (concat "<ul>\n"
                          "  <li class=\"item1\"></li>\n"
                          "  <li class=\"item2\"></li>\n"
-                         "</ul>\n"))))
+                         "</ul>"))))
 
 (ert-deftest temme-expand-numbering-no-repeat ()
   "A single $ without repeat still substitutes with index 1."
   (should (equal (temme-expand-string "li.item$")
-                 "<li class=\"item1\"></li>\n")))
+                 "<li class=\"item1\"></li>")))
 
 ;; --- Field navigation tests ---
 
@@ -333,7 +333,7 @@
   "lorem should generate 30 words of placeholder text."
   (let ((result (temme-expand-string "lorem")))
     (should (string-prefix-p "Lorem ipsum" result))
-    (should (string-suffix-p ".\n" result))
+    (should (string-suffix-p "." result))
     ;; 30 words
     (should (= 30 (length (split-string (string-trim result)))))))
 
@@ -341,19 +341,19 @@
   "lorem5 should generate exactly 5 words."
   (let ((result (temme-expand-string "lorem5")))
     (should (string-prefix-p "Lorem" result))
-    (should (string-suffix-p ".\n" result))
+    (should (string-suffix-p "." result))
     (should (= 5 (length (split-string (string-trim result)))))))
 
 (ert-deftest temme-lorem-one-word ()
   "lorem1 should generate a single capitalized word with period."
   (should (equal (temme-expand-string "lorem1")
-                 "Lorem.\n")))
+                 "Lorem.")))
 
 (ert-deftest temme-lorem-as-child ()
   "p>lorem5 should render lorem text inside a p element."
   (let ((result (temme-expand-string "p>lorem5")))
     (should (string-prefix-p "<p>\n" result))
-    (should (string-suffix-p "</p>\n" result))
+    (should (string-suffix-p "</p>" result))
     (should (string-match-p "  Lorem" result))))
 
 (ert-deftest temme-lorem-repeated-varies ()
@@ -395,7 +395,7 @@
     (should (overlayp temme--preview-overlay))
     (temme-preview-accept)
     (should-not temme--preview-overlay)
-    (should (string= (buffer-string) "<p></p>\n"))))
+    (should (string= (buffer-string) "<p></p>"))))
 
 (ert-deftest temme-preview-dismiss-leaves-buffer ()
   "Dismissing a preview should leave buffer unchanged and remove overlay."
