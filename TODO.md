@@ -15,8 +15,3 @@
 
 ## Snippets / aliases
 - [ ] Custom user-defined snippets
-
-## Advanced text
-- [x] Nested `{}` braces in text nodes
-- [x] Text mixed with child elements on the same node
-- [x] Implicit `div` for standalone `{just text}` nodes
