@@ -7,7 +7,7 @@
 - [ ] `@-` reverse numbering direction
 
 ## Implicit tag resolution
-- [ ] Context-aware implicit tags (`ul>.item` → `li`, `table>.row` → `tr`, `select>.opt` → `option`, etc.)
+- [x] Context-aware implicit tags (`ul>.item` → `li`, `table>.row` → `tr`, `select>.opt` → `option`, etc.)
 
 ## CSS abbreviations
 - [ ] CSS property expansion (`m10` → `margin: 10px;`, `p10-20` → `padding: 10px 20px;`)

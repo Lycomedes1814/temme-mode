@@ -49,6 +49,7 @@ pipeline. Work in progress.
 - Grouping, including multi-root group children: `(header+main)>p`
 - Multipliers: `li*3`
 - Item numbering: `li.item$*3` (`$` = sequential, `$$` = zero-padded, `$@N` = offset start)
+- Implicit tags inferred from parent context: `ul>.item` → `li`, `tr>.cell` → `td`, `select>.opt` → `option`
 - Text nodes: `p{Hello}`
 - Indented output starting at the current line indentation
 - Lorem ipsum placeholder text: `lorem`, `lorem10`, `p>lorem5`
@@ -69,6 +70,24 @@ Output:
 ```html
 <div id="root" class="card"></div>
 ```
+
+Implicit tags inferred from parent context:
+
+```text
+ul>.item$*3
+```
+
+Output:
+
+```html
+<ul>
+  <li class="item1"></li>
+  <li class="item2"></li>
+  <li class="item3"></li>
+</ul>
+```
+
+The parent tag determines the implicit child tag: `ul`/`ol` → `li`, `table`/`tbody`/`thead`/`tfoot` → `tr`, `tr` → `td`, `colgroup` → `col`, `select`/`datalist`/`optgroup` → `option`. Any other parent defaults to `div`.
 
 Repeated children with numbering:
 

@@ -322,6 +322,39 @@
     (should-not temme-field-mode)
     (should (null temme--fields))))
 
+;; --- Implicit tag tests ---
+
+(ert-deftest temme-implicit-tag-ul ()
+  (should (equal (temme-expand-string "ul>.item")
+                 "<ul>\n  <li class=\"item\"></li>\n</ul>")))
+
+(ert-deftest temme-implicit-tag-ol ()
+  (should (equal (temme-expand-string "ol>.item*2")
+                 "<ol>\n  <li class=\"item\"></li>\n  <li class=\"item\"></li>\n</ol>")))
+
+(ert-deftest temme-implicit-tag-table ()
+  (should (equal (temme-expand-string "table>.row")
+                 "<table>\n  <tr class=\"row\"></tr>\n</table>")))
+
+(ert-deftest temme-implicit-tag-tr ()
+  (should (equal (temme-expand-string "tr>.cell")
+                 "<tr>\n  <td class=\"cell\"></td>\n</tr>")))
+
+(ert-deftest temme-implicit-tag-select ()
+  (should (equal (temme-expand-string "select>.opt")
+                 "<select>\n  <option class=\"opt\"></option>\n</select>")))
+
+(ert-deftest temme-implicit-tag-toplevel-defaults-to-div ()
+  (should (equal (temme-expand-string ".wrap")
+                 "<div class=\"wrap\"></div>"))
+  (should (equal (temme-expand-string "#app")
+                 "<div id=\"app\"></div>")))
+
+(ert-deftest temme-implicit-tag-nested-in-div ()
+  "Inside a non-list parent, implicit tag defaults to div."
+  (should (equal (temme-expand-string "div>.inner")
+                 "<div>\n  <div class=\"inner\"></div>\n</div>")))
+
 (ert-deftest temme-fields-form-post ()
   "form:post should have a field for the empty action value."
   (temme-test-with-expansion "form:post"

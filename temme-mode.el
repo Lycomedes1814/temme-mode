@@ -484,6 +484,32 @@ OFFSET shifts the starting position in the word pool for variety."
     (make-temme-fragment :roots (append roots (temme-fragment-roots fragment))
                          :paths (temme-fragment-paths fragment))))
 
+(defconst temme--implicit-tag-map
+  '(("ul"        . "li")
+    ("ol"        . "li")
+    ("menu"      . "li")
+    ("table"     . "tr")
+    ("tbody"     . "tr")
+    ("thead"     . "tr")
+    ("tfoot"     . "tr")
+    ("colgroup"  . "col")
+    ("tr"        . "td")
+    ("select"    . "option")
+    ("datalist"  . "option")
+    ("optgroup"  . "option"))
+  "Maps a parent tag name to the default implicit child tag.")
+
+(defun temme--resolve-implicit-tags (nodes &optional parent-tag)
+  "Walk NODES resolving nil tags based on PARENT-TAG context.
+Modifies nodes in place."
+  (dolist (node nodes)
+    (when (null (temme-node-tag node))
+      (setf (temme-node-tag node)
+            (or (cdr (assoc parent-tag temme--implicit-tag-map))
+                temme-default-tag)))
+    (temme--resolve-implicit-tags (temme-node-children node)
+                                  (temme-node-tag node))))
+
 (defun temme--parse-element (input pos)
   "Parse a single element abbreviation from INPUT starting at POS."
   (setq pos (temme--skip-space input pos))
@@ -534,10 +560,11 @@ OFFSET shifts the starting position in the word pool for variety."
         (_
          (setq pos (temme--skip-space input pos))
          (setq done t))))
-    (let* ((resolved-tag (or tag temme-default-tag))
-           (snippet (and tag (temme--resolve-snippet tag))))
+    (let* ((snippet (and tag (temme--resolve-snippet tag)))
+           (resolved-tag (cond (snippet (plist-get snippet :tag))
+                               (tag tag)
+                               (t nil))))
       (when snippet
-        (setq resolved-tag (plist-get snippet :tag))
         (let ((snippet-attrs (plist-get snippet :attrs)))
           (when snippet-attrs
             (setq attrs (append snippet-attrs attrs)))))
@@ -628,6 +655,7 @@ OFFSET shifts the starting position in the word pool for variety."
     (setq pos (temme--skip-space abbrev pos))
     (unless (= pos (length abbrev))
       (error "Unexpected token at position %d" pos))
+    (temme--resolve-implicit-tags nodes nil)
     nodes))
 
 (defun temme--render-attrs (node)
