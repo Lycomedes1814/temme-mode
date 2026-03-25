@@ -48,7 +48,7 @@ pipeline. Work in progress.
 - Child, sibling, and climb-up operators: `>`, `+`, `^`
 - Grouping, including multi-root group children: `(header+main)>p`
 - Multipliers: `li*3`
-- Item numbering: `li.item$*3` (`$` = sequential, `$$` = zero-padded, `$@N` = offset start)
+- Item numbering: `li.item$*3` (`$` = sequential, `$$` = zero-padded, `$@N` = offset start, `$@-` = reverse)
 - Implicit tags inferred from parent context: `ul>.item` → `li`, `tr>.cell` → `td`, `select>.opt` → `option`
 - Text nodes: `p{Hello}`
 - Indented output starting at the current line indentation
@@ -99,6 +99,38 @@ Output:
 <ul>
   <li class="item3"></li>
   <li class="item4"></li>
+  <li class="item5"></li>
+</ul>
+```
+
+Reverse numbering (`$@-` counts down):
+
+```text
+ul>li.item$@-*3
+```
+
+Output:
+
+```html
+<ul>
+  <li class="item3"></li>
+  <li class="item2"></li>
+  <li class="item1"></li>
+</ul>
+```
+
+Combined (`$@-N` counts down starting from N+count-1):
+
+```text
+ul>li.item$@-5*3
+```
+
+Output:
+
+```html
+<ul>
+  <li class="item7"></li>
+  <li class="item6"></li>
   <li class="item5"></li>
 </ul>
 ```

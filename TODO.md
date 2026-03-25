@@ -4,7 +4,7 @@
 - [x] `$` item numbering in repeated elements (`ul>li.item$*3` → `item1`, `item2`, `item3`)
 - [x] `$$` zero-padded numbering
 - [x] `$@N` numbering with offset
-- [ ] `@-` reverse numbering direction
+- [x] `@-` reverse numbering direction
 
 ## Implicit tag resolution
 - [x] Context-aware implicit tags (`ul>.item` → `li`, `table>.row` → `tr`, `select>.opt` → `option`, etc.)

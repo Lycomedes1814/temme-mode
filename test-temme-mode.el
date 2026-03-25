@@ -260,6 +260,27 @@
                          "<li class=\"item04\"></li>\n"
                          "<li class=\"item05\"></li>"))))
 
+(ert-deftest temme-expand-numbering-reverse ()
+  "$@- reverses numbering direction."
+  (should (equal (temme-expand-string "li.item$@-*3")
+                 (concat "<li class=\"item3\"></li>\n"
+                         "<li class=\"item2\"></li>\n"
+                         "<li class=\"item1\"></li>"))))
+
+(ert-deftest temme-expand-numbering-reverse-offset ()
+  "$@-N reverses numbering starting from N+count-1 down to N."
+  (should (equal (temme-expand-string "li.item$@-5*3")
+                 (concat "<li class=\"item7\"></li>\n"
+                         "<li class=\"item6\"></li>\n"
+                         "<li class=\"item5\"></li>"))))
+
+(ert-deftest temme-expand-numbering-reverse-zero-padded ()
+  "$$@- applies zero-padding with reverse numbering."
+  (should (equal (temme-expand-string "li.item$$@-*3")
+                 (concat "<li class=\"item03\"></li>\n"
+                         "<li class=\"item02\"></li>\n"
+                         "<li class=\"item01\"></li>"))))
+
 ;; --- Field navigation tests ---
 
 (defmacro temme-test-with-expansion (abbrev &rest body)

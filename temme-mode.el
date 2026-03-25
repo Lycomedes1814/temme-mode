@@ -705,36 +705,42 @@ Modifies nodes in place."
   "Return a string of INDENT spaces."
   (make-string (max 0 indent) ?\s))
 
-(defun temme--substitute-numbering (string index)
+(defun temme--substitute-numbering (string index &optional count)
   "Replace runs of `$' in STRING with INDEX, zero-padded to the run length.
-Supports `$@N' syntax to offset the starting index by N-1."
+Supports `$@N' syntax to offset the starting index by N-1.
+Supports `$@-' and `$@-N' for reverse numbering (requires COUNT, the total
+repeat count, to compute the descending index)."
   (if (null string)
       nil
     (replace-regexp-in-string
-     "\\$+\\(@[0-9]+\\)?"
+     "\\$+\\(@-?[0-9]*\\)?"
      (lambda (match)
        (let* ((at-pos (cl-position ?@ match))
               (dollar-count (or at-pos (length match)))
-              (offset (if at-pos
-                          (string-to-number (substring match (1+ at-pos)))
-                        1))
-              (effective-index (+ index offset -1)))
+              (rest (if at-pos (substring match (1+ at-pos)) ""))
+              (reverse (and (> (length rest) 0) (eq (aref rest 0) ?-)))
+              (offset-str (if reverse (substring rest 1) rest))
+              (offset (if (string= offset-str "") 1 (string-to-number offset-str)))
+              (effective-index (if reverse
+                                   (+ offset (or count 1) (- index))
+                                 (+ index offset -1))))
          (format (format "%%0%dd" dollar-count) effective-index)))
      string t)))
 
-(defun temme--number-node (node index)
-  "Return a shallow copy of NODE with `$' sequences replaced by INDEX."
+(defun temme--number-node (node index &optional count)
+  "Return a shallow copy of NODE with `$' sequences replaced by INDEX.
+COUNT is the total repeat count, needed for reverse numbering (`$@-')."
   (make-temme-node
    :tag (temme-node-tag node)
-   :id (temme--substitute-numbering (temme-node-id node) index)
-   :classes (mapcar (lambda (c) (temme--substitute-numbering c index))
+   :id (temme--substitute-numbering (temme-node-id node) index count)
+   :classes (mapcar (lambda (c) (temme--substitute-numbering c index count))
                     (temme-node-classes node))
    :attrs (mapcar (lambda (attr)
                     (cons (car attr)
                           (if (eq (cdr attr) t) t
-                            (temme--substitute-numbering (cdr attr) index))))
+                            (temme--substitute-numbering (cdr attr) index count))))
                   (temme-node-attrs node))
-   :text (temme--substitute-numbering (temme-node-text node) index)
+   :text (temme--substitute-numbering (temme-node-text node) index count)
    :repeat (temme-node-repeat node)
    :self-closing (temme-node-self-closing node)
    :children (temme-node-children node)))
@@ -793,7 +799,7 @@ PARENT-INDEX, when non-nil, is the repeat index of an ancestor node."
         (parts nil))
     (dotimes (i count)
       (let ((idx (1+ i)))
-        (push (temme--render-once (temme--number-node node idx) ind
+        (push (temme--render-once (temme--number-node node idx count) ind
                                   (if (> count 1) idx effective-index))
               parts)))
     (apply #'concat (nreverse parts))))
