@@ -3,7 +3,7 @@
 ## Numbering
 - [x] `$` item numbering in repeated elements (`ul>li.item$*3` → `item1`, `item2`, `item3`)
 - [x] `$$` zero-padded numbering
-- [ ] `$@N` numbering with offset
+- [x] `$@N` numbering with offset
 - [ ] `@-` reverse numbering direction
 
 ## Implicit tag resolution

@@ -240,6 +240,26 @@
   (should (equal (temme-expand-string "li.item$")
                  "<li class=\"item1\"></li>")))
 
+(ert-deftest temme-expand-numbering-offset ()
+  "$ with @N offset starts numbering at N."
+  (should (equal (temme-expand-string "li.item$@3*3")
+                 (concat "<li class=\"item3\"></li>\n"
+                         "<li class=\"item4\"></li>\n"
+                         "<li class=\"item5\"></li>"))))
+
+(ert-deftest temme-expand-numbering-offset-one ()
+  "$@1 behaves identically to plain $."
+  (should (equal (temme-expand-string "li.item$@1*2")
+                 (concat "<li class=\"item1\"></li>\n"
+                         "<li class=\"item2\"></li>"))))
+
+(ert-deftest temme-expand-numbering-zero-padded-offset ()
+  "$$@N applies zero-padding and offset together."
+  (should (equal (temme-expand-string "li.item$$@3*3")
+                 (concat "<li class=\"item03\"></li>\n"
+                         "<li class=\"item04\"></li>\n"
+                         "<li class=\"item05\"></li>"))))
+
 ;; --- Field navigation tests ---
 
 (defmacro temme-test-with-expansion (abbrev &rest body)

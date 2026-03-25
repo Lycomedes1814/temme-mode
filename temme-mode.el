@@ -284,7 +284,8 @@ OFFSET shifts the starting position in the word pool for variety."
       (eq char ?-)
       (eq char ?_)
       (eq char ?:)
-      (eq char ?$)))
+      (eq char ?$)
+      (eq char ?@)))
 
 (defun temme--attr-char-p (char)
   "Return non-nil when CHAR may appear in an unquoted attribute token."
@@ -677,13 +678,20 @@ OFFSET shifts the starting position in the word pool for variety."
   (make-string (max 0 indent) ?\s))
 
 (defun temme--substitute-numbering (string index)
-  "Replace runs of `$' in STRING with INDEX, zero-padded to the run length."
+  "Replace runs of `$' in STRING with INDEX, zero-padded to the run length.
+Supports `$@N' syntax to offset the starting index by N-1."
   (if (null string)
       nil
     (replace-regexp-in-string
-     "\\$+"
+     "\\$+\\(@[0-9]+\\)?"
      (lambda (match)
-       (format (format "%%0%dd" (length match)) index))
+       (let* ((at-pos (cl-position ?@ match))
+              (dollar-count (or at-pos (length match)))
+              (offset (if at-pos
+                          (string-to-number (substring match (1+ at-pos)))
+                        1))
+              (effective-index (+ index offset -1)))
+         (format (format "%%0%dd" dollar-count) effective-index)))
      string t)))
 
 (defun temme--number-node (node index)
