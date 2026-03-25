@@ -87,6 +87,22 @@ Output:
 </ul>
 ```
 
+Numbering with offset (`$@N` starts counting from N):
+
+```text
+ul>li.item$@3*3
+```
+
+Output:
+
+```html
+<ul>
+  <li class="item3"></li>
+  <li class="item4"></li>
+  <li class="item5"></li>
+</ul>
+```
+
 Grouped children:
 
 ```text
