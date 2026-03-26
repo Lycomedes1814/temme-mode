@@ -13,6 +13,8 @@ short abbreviation, hit `C-c ,`, and get the full markup. For example,
 </ul>
 ```
 
+![temme-mode demo](demo.gif)
+
 The abbreviation syntax is compact but expressive: `>` nests tags, `+` adds
 siblings, `*3` repeats, `.class` and `#id` set attributes, and `{text}` adds
 content — so a single line can describe an entire block of markup. After
