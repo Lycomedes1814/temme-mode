@@ -483,4 +483,89 @@
   (should (equal (temme-expand-string "p>{start }+em*2{$}+{ end}")
                  "<p>start <em>1</em><em>2</em> end</p>")))
 
+;;; CSS abbreviation expansion ------------------------------------------------
+
+(ert-deftest temme-css-basic-property-with-value ()
+  (should (equal (temme-css-expand-string "m10")
+                 "margin: 10px;"))
+  (should (equal (temme-css-expand-string "p20")
+                 "padding: 20px;"))
+  (should (equal (temme-css-expand-string "w100")
+                 "width: 100px;"))
+  (should (equal (temme-css-expand-string "fz16")
+                 "font-size: 16px;")))
+
+(ert-deftest temme-css-zero-has-no-unit ()
+  (should (equal (temme-css-expand-string "m0")
+                 "margin: 0;"))
+  (should (equal (temme-css-expand-string "p0")
+                 "padding: 0;")))
+
+(ert-deftest temme-css-unit-suffixes ()
+  (should (equal (temme-css-expand-string "m10p")
+                 "margin: 10%;"))
+  (should (equal (temme-css-expand-string "m10e")
+                 "margin: 10em;"))
+  (should (equal (temme-css-expand-string "m10r")
+                 "margin: 10rem;"))
+  (should (equal (temme-css-expand-string "m10x")
+                 "margin: 10px;")))
+
+(ert-deftest temme-css-negative-values ()
+  (should (equal (temme-css-expand-string "m-10")
+                 "margin: -10px;")))
+
+(ert-deftest temme-css-multi-values ()
+  (should (equal (temme-css-expand-string "m10-20")
+                 "margin: 10px 20px;"))
+  (should (equal (temme-css-expand-string "p10-20-30-40")
+                 "padding: 10px 20px 30px 40px;")))
+
+(ert-deftest temme-css-keyword-expansions ()
+  (should (equal (temme-css-expand-string "dn")
+                 "display: none;"))
+  (should (equal (temme-css-expand-string "df")
+                 "display: flex;"))
+  (should (equal (temme-css-expand-string "dib")
+                 "display: inline-block;"))
+  (should (equal (temme-css-expand-string "tac")
+                 "text-align: center;"))
+  (should (equal (temme-css-expand-string "fwb")
+                 "font-weight: bold;"))
+  (should (equal (temme-css-expand-string "posa")
+                 "position: absolute;")))
+
+(ert-deftest temme-css-bare-prefix-returns-nil ()
+  "Bare property prefixes without values return nil (fall through to HTML)."
+  (should (null (temme-css-expand-string "m")))
+  (should (null (temme-css-expand-string "p")))
+  (should (null (temme-css-expand-string "bg"))))
+
+(ert-deftest temme-css-unitless-properties ()
+  (should (equal (temme-css-expand-string "z10")
+                 "z-index: 10;"))
+  (should (equal (temme-css-expand-string "op50")
+                 "opacity: 50;"))
+  (should (equal (temme-css-expand-string "fxg1")
+                 "flex-grow: 1;")))
+
+(ert-deftest temme-css-color-values ()
+  (should (equal (temme-css-expand-string "c#f00")
+                 "color: #f00;"))
+  (should (equal (temme-css-expand-string "bgc#e0e0e0")
+                 "background-color: #e0e0e0;")))
+
+(ert-deftest temme-css-unknown-abbreviation ()
+  (should (null (temme-css-expand-string "zzz123"))))
+
+(ert-deftest temme-css-multi-value-with-negative ()
+  (should (equal (temme-css-expand-string "m10--20")
+                 "margin: 10px -20px;")))
+
+(ert-deftest temme-css-margin-auto-keyword ()
+  (should (equal (temme-css-expand-string "ma")
+                 "margin: auto;"))
+  (should (equal (temme-css-expand-string "mla")
+                 "margin-left: auto;")))
+
 ;;; test-temme-mode.el ends here

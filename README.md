@@ -33,6 +33,7 @@ pipeline. Work in progress.
 
 - [Features](#features)
 - [Examples](#examples)
+- [CSS abbreviations](#css-abbreviations)
 - [Snippets](#snippets)
   - [Raw snippets](#raw-snippets)
   - [Tag aliases](#tag-aliases)
@@ -58,6 +59,7 @@ pipeline. Work in progress.
 - Indented output starting at the current line indentation
 - Lorem ipsum placeholder text: `lorem`, `lorem10`, `p>lorem5`
 - Built-in snippets for common patterns (`!`, `btn`, `a:link`, `link:css`, `input:text`, etc.)
+- CSS property expansion (auto-detected from input): `m10` → `margin: 10px;`, `df` → `display: flex;`
 - Interactive expansion command: `M-x temme-expand` or `C-c ,`
 - Post-expansion field navigation: TAB through empty attributes and tag content (`temme-field-mode`)
 
@@ -349,6 +351,126 @@ Output:
 ```
 
 The parent tag determines the implicit child tag: `ul`/`ol` → `li`, `table`/`tbody`/`thead`/`tfoot` → `tr`, `tr` → `td`, `colgroup` → `col`, `select`/`datalist`/`optgroup` → `option`. Any other parent defaults to `div`.
+
+## CSS abbreviations
+
+CSS abbreviations are detected automatically from the input — no special
+mode required. When an abbreviation matches a CSS keyword or a property
+prefix followed by a value, it expands to a CSS declaration. Bare prefixes
+like `p` or `b` fall through to HTML so they don't shadow tag names.
+
+```text
+m10
+```
+
+Output:
+
+```css
+margin: 10px;
+```
+
+### Values and units
+
+Numeric values default to `px`. Use suffixes for other units:
+
+| Abbreviation | Output |
+|---|---|
+| `m10` | `margin: 10px;` |
+| `m10p` | `margin: 10%;` |
+| `m10e` | `margin: 10em;` |
+| `m10r` | `margin: 10rem;` |
+| `m0` | `margin: 0;` |
+
+Zero gets no unit. Properties like `z-index`, `opacity`, `flex-grow`,
+`flex-shrink`, `order`, `line-height`, and `font-weight` are unitless by
+default.
+
+### Multiple values
+
+Separate values with hyphens:
+
+| Abbreviation | Output |
+|---|---|
+| `m10-20` | `margin: 10px 20px;` |
+| `p10-20-30-40` | `padding: 10px 20px 30px 40px;` |
+
+### Negative values
+
+A leading hyphen makes the value negative:
+
+| Abbreviation | Output |
+|---|---|
+| `m-10` | `margin: -10px;` |
+| `m10--20` | `margin: 10px -20px;` |
+
+### Color values
+
+Use `#` for colors:
+
+| Abbreviation | Output |
+|---|---|
+| `c#f00` | `color: #f00;` |
+| `bgc#e0e0e0` | `background-color: #e0e0e0;` |
+
+### Keyword abbreviations
+
+Common property + value combinations have dedicated abbreviations:
+
+| Abbreviation | Output |
+|---|---|
+| `dn` | `display: none;` |
+| `db` | `display: block;` |
+| `df` | `display: flex;` |
+| `dg` | `display: grid;` |
+| `dib` | `display: inline-block;` |
+| `posa` | `position: absolute;` |
+| `posf` | `position: fixed;` |
+| `posr` | `position: relative;` |
+| `fll` | `float: left;` |
+| `flr` | `float: right;` |
+| `ovh` | `overflow: hidden;` |
+| `tac` | `text-align: center;` |
+| `tar` | `text-align: right;` |
+| `tdn` | `text-decoration: none;` |
+| `ttu` | `text-transform: uppercase;` |
+| `fwb` | `font-weight: bold;` |
+| `fsi` | `font-style: italic;` |
+| `wsn` | `white-space: nowrap;` |
+| `fxdc` | `flex-direction: column;` |
+| `fxww` | `flex-wrap: wrap;` |
+| `aic` | `align-items: center;` |
+| `jcc` | `justify-content: center;` |
+| `jcsb` | `justify-content: space-between;` |
+| `bxzbb` | `box-sizing: border-box;` |
+| `curp` | `cursor: pointer;` |
+| `lisn` | `list-style: none;` |
+| `ma` | `margin: auto;` |
+
+### Property prefix table
+
+Type any property prefix without a value to get an empty declaration ready
+to fill in (e.g., `bg` → `background: ;`). Common prefixes:
+
+| Prefix | Property |
+|---|---|
+| `m` / `mt` / `mr` / `mb` / `ml` | `margin` / `-top` / `-right` / `-bottom` / `-left` |
+| `p` / `pt` / `pr` / `pb` / `pl` | `padding` / `-top` / `-right` / `-bottom` / `-left` |
+| `w` / `h` | `width` / `height` |
+| `maw` / `mah` / `miw` / `mih` | `max-width` / `max-height` / `min-width` / `min-height` |
+| `d` | `display` |
+| `pos` / `t` / `r` / `b` / `l` | `position` / `top` / `right` / `bottom` / `left` |
+| `z` | `z-index` |
+| `fz` / `ff` / `fw` / `fs` | `font-size` / `font-family` / `font-weight` / `font-style` |
+| `ta` / `td` / `tt` / `ti` | `text-align` / `-decoration` / `-transform` / `-indent` |
+| `lh` / `ls` | `line-height` / `letter-spacing` |
+| `c` / `op` | `color` / `opacity` |
+| `bg` / `bgc` / `bgi` / `bgp` / `bgs` | `background` / `-color` / `-image` / `-position` / `-size` |
+| `bd` / `bdw` / `bds` / `bdc` / `bdrs` | `border` / `-width` / `-style` / `-color` / `-radius` |
+| `fx` / `fxd` / `fxw` / `fxg` / `fxs` / `fxb` | `flex` / `-direction` / `-wrap` / `-grow` / `-shrink` / `-basis` |
+| `ai` / `ac` / `jc` / `ji` | `align-items` / `-content` / `justify-content` / `-items` |
+| `gtc` / `gtr` / `gta` | `grid-template-columns` / `-rows` / `-areas` |
+| `trs` / `anim` | `transition` / `animation` |
+| `cur` / `pe` / `us` | `cursor` / `pointer-events` / `user-select` |
 
 ## Snippets
 

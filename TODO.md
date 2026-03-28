@@ -1,7 +1,7 @@
 # temme-mode TODO
 
 ## CSS abbreviations
-- [ ] CSS property expansion (`m10` → `margin: 10px;`, `p10-20` → `padding: 10px 20px;`)
+- [x] CSS property expansion (`m10` → `margin: 10px;`, `p10-20` → `padding: 10px 20px;`)
 - [ ] CSS vendor prefixes (`-webkit-`, `-moz-`, etc.)
 
 ## Wrap with abbreviation
