@@ -2,6 +2,7 @@
 
 (require 'ert)
 (load-file "/home/jal/Projects/temme-mode/temme-mode.el")
+(load-file "/home/jal/Projects/temme-mode/temme-css.el")
 
 (ert-deftest temme-expand-simple-tag ()
   (should (equal (temme-expand-string "div")
@@ -535,11 +536,18 @@
   (should (equal (temme-css-expand-string "posa")
                  "position: absolute;")))
 
-(ert-deftest temme-css-bare-prefix-returns-nil ()
-  "Bare property prefixes without values return nil (fall through to HTML)."
-  (should (null (temme-css-expand-string "m")))
-  (should (null (temme-css-expand-string "p")))
-  (should (null (temme-css-expand-string "bg"))))
+(ert-deftest temme-css-bare-prefix-expands-to-empty-declaration ()
+  "Bare property prefixes expand to empty declarations."
+  (should (equal (temme-css-expand-string "m")
+                 "margin: ;"))
+  (should (equal (temme-css-expand-string "p")
+                 "padding: ;"))
+  (should (equal (temme-css-expand-string "bg")
+                 "background: ;"))
+  (should (equal (temme-css-expand-string "ff")
+                 "font-family: ;"))
+  (should (equal (temme-css-expand-string "ai")
+                 "align-items: ;")))
 
 (ert-deftest temme-css-unitless-properties ()
   (should (equal (temme-css-expand-string "z10")
