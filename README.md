@@ -439,8 +439,13 @@ Common property + value combinations have dedicated abbreviations:
 | `fxdc` | `flex-direction: column;` |
 | `fxww` | `flex-wrap: wrap;` |
 | `aic` | `align-items: center;` |
+| `aifs` / `aife` | `align-items: flex-start` / `flex-end;` |
+| `acc` / `acs` | `align-content: center` / `stretch;` |
 | `jcc` | `justify-content: center;` |
-| `jcsb` | `justify-content: space-between;` |
+| `jcsb` / `jcsa` / `jcse` | `justify-content: space-between` / `-around` / `-evenly;` |
+| `ffs` / `ffss` / `ffm` | `font-family: serif` / `sans-serif` / `monospace;` |
+| `bdss` / `bdsd` / `bdsn` | `border-style: solid` / `dashed` / `none;` |
+| `bgrn` / `bgsc` | `background-repeat: no-repeat;` / `background-size: cover;` |
 | `bxzbb` | `box-sizing: border-box;` |
 | `curp` | `cursor: pointer;` |
 | `lisn` | `list-style: none;` |
@@ -460,14 +465,14 @@ Add a value after any property prefix to expand it (e.g., `bg#f00` →
 | `d` | `display` |
 | `pos` / `t` / `r` / `b` / `l` | `position` / `top` / `right` / `bottom` / `left` |
 | `z` | `z-index` |
-| `fz` / `ff` / `fw` / `fs` | `font-size` / `font-family` / `font-weight` / `font-style` |
+| `fz` / `fw` / `fs` | `font-size` / `font-weight` / `font-style` |
 | `ta` / `td` / `tt` / `ti` | `text-align` / `-decoration` / `-transform` / `-indent` |
 | `lh` / `ls` | `line-height` / `letter-spacing` |
 | `c` / `op` | `color` / `opacity` |
 | `bg` / `bgc` / `bgi` / `bgp` / `bgs` | `background` / `-color` / `-image` / `-position` / `-size` |
 | `bd` / `bdw` / `bds` / `bdc` / `bdrs` | `border` / `-width` / `-style` / `-color` / `-radius` |
 | `fx` / `fxd` / `fxw` / `fxg` / `fxs` / `fxb` | `flex` / `-direction` / `-wrap` / `-grow` / `-shrink` / `-basis` |
-| `ai` / `ac` / `jc` / `ji` | `align-items` / `-content` / `justify-content` / `-items` |
+| `ai` / `jc` | `align-items` / `justify-content` (keyword-only, use e.g. `aic`, `jcc`) |
 | `gtc` / `gtr` / `gta` | `grid-template-columns` / `-rows` / `-areas` |
 | `trs` / `anim` | `transition` / `animation` |
 | `cur` / `pe` / `us` | `cursor` / `pointer-events` / `user-select` |
