@@ -576,4 +576,71 @@
   (should (equal (temme-css-expand-string "mla")
                  "margin-left: auto;")))
 
+(ert-deftest temme-css-vendor-prefix-all ()
+  (should (equal (temme-css-expand-string "-trs")
+                 (concat "-webkit-transition: ;\n"
+                         "-moz-transition: ;\n"
+                         "-ms-transition: ;\n"
+                         "-o-transition: ;\n"
+                         "transition: ;"))))
+
+(ert-deftest temme-css-vendor-prefix-all-with-value ()
+  (should (equal (temme-css-expand-string "-bdrs10")
+                 (concat "-webkit-border-radius: 10px;\n"
+                         "-moz-border-radius: 10px;\n"
+                         "-ms-border-radius: 10px;\n"
+                         "-o-border-radius: 10px;\n"
+                         "border-radius: 10px;"))))
+
+(ert-deftest temme-css-vendor-prefix-specific ()
+  (should (equal (temme-css-expand-string "-wm-trs")
+                 (concat "-webkit-transition: ;\n"
+                         "-moz-transition: ;\n"
+                         "transition: ;"))))
+
+(ert-deftest temme-css-vendor-prefix-single ()
+  (should (equal (temme-css-expand-string "-w-bdrs10")
+                 (concat "-webkit-border-radius: 10px;\n"
+                         "border-radius: 10px;"))))
+
+(ert-deftest temme-css-vendor-prefix-with-keyword ()
+  (should (equal (temme-css-expand-string "-df")
+                 (concat "-webkit-display: flex;\n"
+                         "-moz-display: flex;\n"
+                         "-ms-display: flex;\n"
+                         "-o-display: flex;\n"
+                         "display: flex;"))))
+
+(ert-deftest temme-css-vendor-prefix-unknown ()
+  (should (null (temme-css-expand-string "-zzz"))))
+
+(ert-deftest temme-css-literal-value ()
+  (should (equal (temme-css-expand-string "trs:all 0.3s ease")
+                 "transition: all 0.3s ease;"))
+  (should (equal (temme-css-expand-string "d:flex")
+                 "display: flex;"))
+  (should (equal (temme-css-expand-string "trs:all 0.3s ease-in-out")
+                 "transition: all 0.3s ease-in-out;")))
+
+(ert-deftest temme-css-literal-value-empty ()
+  (should (equal (temme-css-expand-string "trs:")
+                 "transition: ;")))
+
+(ert-deftest temme-css-literal-value-unknown-prefix ()
+  (should (null (temme-css-expand-string "zzz:foo"))))
+
+(ert-deftest temme-css-vendor-prefix-with-literal-value ()
+  (should (equal (temme-css-expand-string "-trs:all 0.3s ease")
+                 (concat "-webkit-transition: all 0.3s ease;\n"
+                         "-moz-transition: all 0.3s ease;\n"
+                         "-ms-transition: all 0.3s ease;\n"
+                         "-o-transition: all 0.3s ease;\n"
+                         "transition: all 0.3s ease;"))))
+
+(ert-deftest temme-css-vendor-prefix-specific-with-literal-value ()
+  (should (equal (temme-css-expand-string "-wm-trs:all 0.3s ease")
+                 (concat "-webkit-transition: all 0.3s ease;\n"
+                         "-moz-transition: all 0.3s ease;\n"
+                         "transition: all 0.3s ease;"))))
+
 ;;; test-temme-mode.el ends here

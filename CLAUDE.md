@@ -33,7 +33,7 @@ All tests must pass before committing.
 ### temme-css.el
 
 1. **Data tables** — `temme--css-properties` (prefix→property alist), `temme--css-keywords` (abbreviation→full declaration alist)
-2. **Parser** — `temme--css-parse-abbrev` entry point. Handles keyword lookup, property prefix matching (with bare prefix support), numeric values with units, multi-values (hyphen-separated), negative numbers, colors, and unitless properties
+2. **Parser** — `temme--css-parse-abbrev` entry point (delegates to `temme--css-parse-abbrev-1` for base parsing). Handles vendor prefixes (`-abbrev` for all vendors, `-wm-abbrev` for specific vendors via `temme--css-parse-vendor-prefix`), literal value syntax (`prop:value` for arbitrary values, e.g. `trs:all 0.3s ease`), keyword lookup, property prefix matching (with bare prefix support), numeric values with units, multi-values (hyphen-separated), negative numbers, colors, and unitless properties
 3. **Interactive command** — `temme-css-expand` (C-c .) reads CSS abbreviation from point and inserts the declaration
 
 ## Conventions

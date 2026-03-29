@@ -34,6 +34,8 @@ pipeline. Work in progress.
 - [Features](#features)
 - [Examples](#examples)
 - [CSS abbreviations](#css-abbreviations)
+  - [Vendor prefixes](#vendor-prefixes)
+  - [Literal values](#literal-values)
 - [Snippets](#snippets)
   - [Raw snippets](#raw-snippets)
   - [Tag aliases](#tag-aliases)
@@ -60,6 +62,8 @@ pipeline. Work in progress.
 - Lorem ipsum placeholder text: `lorem`, `lorem10`, `p>lorem5`
 - Built-in snippets for common patterns (`!`, `btn`, `a:link`, `link:css`, `input:text`, etc.)
 - CSS property expansion (auto-detected from input): `m10` → `margin: 10px;`, `df` → `display: flex;`
+- CSS vendor prefixes: `-trs` for all vendors, `-wm-trs` for specific vendors
+- CSS literal values: `trs:all 0.3s ease` for arbitrary value strings
 - Interactive expansion command: `M-x temme-expand` or `C-c ,`
 - Post-expansion field navigation: TAB through empty attributes and tag content (`temme-field-mode`)
 
@@ -450,6 +454,70 @@ Common property + value combinations have dedicated abbreviations:
 | `curp` | `cursor: pointer;` |
 | `lisn` | `list-style: none;` |
 | `ma` | `margin: auto;` |
+
+### Vendor prefixes
+
+Prefix an abbreviation with `-` to generate vendor-prefixed declarations.
+All four vendors are included by default (`-webkit-`, `-moz-`, `-ms-`,
+`-o-`), followed by the unprefixed declaration:
+
+```text
+-trs
+```
+
+Output:
+
+```css
+-webkit-transition: ;
+-moz-transition: ;
+-ms-transition: ;
+-o-transition: ;
+transition: ;
+```
+
+To select specific vendors, place vendor letters between two hyphens.
+The letters are `w` (webkit), `m` (moz), `s` (ms), `o` (opera):
+
+```text
+-wm-bdrs10
+```
+
+Output:
+
+```css
+-webkit-border-radius: 10px;
+-moz-border-radius: 10px;
+border-radius: 10px;
+```
+
+### Literal values
+
+Use `:` after a property prefix to provide an arbitrary literal value.
+This is especially useful with vendor prefixes, where the value is
+replicated across all generated lines:
+
+```text
+-trs:all 0.3s ease
+```
+
+Output:
+
+```css
+-webkit-transition: all 0.3s ease;
+-moz-transition: all 0.3s ease;
+-ms-transition: all 0.3s ease;
+-o-transition: all 0.3s ease;
+transition: all 0.3s ease;
+```
+
+It also works without vendor prefixes for values that aren't purely
+numeric:
+
+| Abbreviation | Output |
+|---|---|
+| `trs:all 0.3s ease` | `transition: all 0.3s ease;` |
+| `d:flex` | `display: flex;` |
+| `trs:all 0.3s ease-in-out` | `transition: all 0.3s ease-in-out;` |
 
 ### Property prefix table
 

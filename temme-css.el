@@ -326,35 +326,100 @@ Entries earlier in the list take priority for ambiguous prefixes.")
     (?x "px")
     (_ nil)))
 
+(defconst temme--css-vendor-prefixes
+  '((?w . "-webkit-")
+    (?m . "-moz-")
+    (?s . "-ms-")
+    (?o . "-o-"))
+  "Alist mapping vendor letter characters to CSS vendor prefix strings.")
+
+(defun temme--css-parse-vendor-prefix (abbrev)
+  "Parse vendor prefix specification from ABBREV.
+Returns (VENDORS . REST) where VENDORS is a list of vendor prefix
+strings and REST is the remaining abbreviation, or nil if ABBREV
+does not start with a vendor prefix."
+  (when (and (> (length abbrev) 1) (eq (aref abbrev 0) ?-))
+    (let* ((after-dash (substring abbrev 1))
+           (dash-pos (string-match "-" after-dash)))
+      (if dash-pos
+          (let ((letters (substring after-dash 0 dash-pos))
+                (rest (substring after-dash (1+ dash-pos))))
+            (if (and (> (length letters) 0)
+                     (string-match-p "\\`[wmso]+\\'" letters))
+                ;; Specific vendors selected
+                (let (vendors)
+                  (dotimes (i (length letters))
+                    (let ((prefix (cdr (assq (aref letters i)
+                                             temme--css-vendor-prefixes))))
+                      (when prefix (push prefix vendors))))
+                  (cons (nreverse vendors) rest))
+              ;; Not vendor letters — treat whole remainder as abbreviation
+              (cons (mapcar #'cdr temme--css-vendor-prefixes) after-dash)))
+        ;; No second dash — all vendors, rest is the abbreviation
+        (cons (mapcar #'cdr temme--css-vendor-prefixes) after-dash)))))
+
 (defun temme--css-parse-abbrev (abbrev)
   "Parse CSS abbreviation ABBREV into a declaration string or nil.
 Returns nil if ABBREV is not a recognized CSS abbreviation.
+Handles vendor prefix syntax: -abbrev for all vendors,
+-wm-abbrev for specific vendors (w=webkit, m=moz, s=ms, o=opera).
 Checks keyword table first, then matches the longest property prefix.
 Bare prefixes expand to empty declarations (e.g., \"bg\" => \"background: ;\")."
-  ;; First check keyword table (exact match)
-  (let ((keyword (cdr (assoc abbrev temme--css-keywords))))
-    (if keyword
-        keyword
-      ;; Find the longest matching property prefix
-      (let ((best-prop nil)
-            (best-prefix-len 0))
-        (dolist (entry temme--css-properties)
-          (let ((prefix (car entry)))
-            (when (and (string-prefix-p prefix abbrev)
-                       (> (length prefix) best-prefix-len)
-                       (let ((rest (substring abbrev (length prefix))))
-                         (or (string-empty-p rest)
-                             (string-match-p "\\`[-0-9#]" rest))))
-              (setq best-prop (cdr entry)
-                    best-prefix-len (length prefix)))))
-        (when best-prop
-          (let ((rest (substring abbrev best-prefix-len)))
-            (if (string-empty-p rest)
-                (format "%s: ;" best-prop)
-              (let ((values (temme--css-parse-values rest best-prop)))
-                (when values
-                  (format "%s: %s;" best-prop
-                          (string-join values " ")))))))))))
+  (let ((vendor-info (temme--css-parse-vendor-prefix abbrev)))
+    (if vendor-info
+        (let* ((vendors (car vendor-info))
+               (rest (cdr vendor-info))
+               (base-decl (temme--css-parse-abbrev-1 rest)))
+          (when base-decl
+            (let ((colon-pos (string-match ": " base-decl)))
+              (when colon-pos
+                (let* ((prop (substring base-decl 0 colon-pos))
+                       (value-part (substring base-decl colon-pos))
+                       lines)
+                  (dolist (vendor vendors)
+                    (push (concat vendor prop value-part) lines))
+                  (push (concat prop value-part) lines)
+                  (string-join (nreverse lines) "\n"))))))
+      (temme--css-parse-abbrev-1 abbrev))))
+
+(defun temme--css-parse-abbrev-1 (abbrev)
+  "Parse CSS abbreviation ABBREV without vendor prefix handling.
+Returns a single declaration string or nil.
+Supports :VALUE syntax for literal values (e.g., \"trs:all 0.3s ease\")."
+  ;; Check for :value syntax first
+  (let ((colon-pos (string-match ":" abbrev)))
+    (if colon-pos
+        (let* ((prop-abbrev (substring abbrev 0 colon-pos))
+               (raw-value (substring abbrev (1+ colon-pos)))
+               (property (cdr (assoc prop-abbrev temme--css-properties))))
+          (when property
+            (if (string-empty-p raw-value)
+                (format "%s: ;" property)
+              (format "%s: %s;" property raw-value))))
+      ;; No colon — check keyword table, then property prefixes
+      (let ((keyword (cdr (assoc abbrev temme--css-keywords))))
+        (if keyword
+            keyword
+          ;; Find the longest matching property prefix
+          (let ((best-prop nil)
+                (best-prefix-len 0))
+            (dolist (entry temme--css-properties)
+              (let ((prefix (car entry)))
+                (when (and (string-prefix-p prefix abbrev)
+                           (> (length prefix) best-prefix-len)
+                           (let ((rest (substring abbrev (length prefix))))
+                             (or (string-empty-p rest)
+                                 (string-match-p "\\`[-0-9#]" rest))))
+                  (setq best-prop (cdr entry)
+                        best-prefix-len (length prefix)))))
+            (when best-prop
+              (let ((rest (substring abbrev best-prefix-len)))
+                (if (string-empty-p rest)
+                    (format "%s: ;" best-prop)
+                  (let ((values (temme--css-parse-values rest best-prop)))
+                    (when values
+                      (format "%s: %s;" best-prop
+                              (string-join values " ")))))))))))))
 
 (defun temme--css-parse-values (str property)
   "Parse value string STR for PROPERTY into a list of formatted values.
@@ -419,7 +484,7 @@ A hyphen is a separator unless it is at the start or follows another hyphen."
   (interactive)
   (let* ((end (point))
          (start (save-excursion
-                  (skip-chars-backward "a-zA-Z0-9#._%-")
+                  (skip-chars-backward "a-zA-Z0-9#._%-: ")
                   (point)))
          (base-indent (save-excursion
                         (goto-char start)
@@ -438,7 +503,12 @@ A hyphen is a separator unless it is at the start or follows another hyphen."
     (let ((expansion (temme-css-expand-string abbrev)))
       (unless expansion
         (user-error "Unknown CSS abbreviation: %s" abbrev))
-      (let ((indented (concat (make-string base-indent ?\s) expansion)))
+      (let* ((indent-str (make-string base-indent ?\s))
+             (lines (split-string expansion "\n"))
+             (indented (string-join
+                        (mapcar (lambda (line) (concat indent-str line))
+                                lines)
+                        "\n")))
         (delete-region insert-start end)
         (goto-char insert-start)
         (insert indented)
