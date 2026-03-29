@@ -2,7 +2,6 @@
 
 (require 'ert)
 (load-file "/home/jal/Projects/temme-mode/temme-mode.el")
-(load-file "/home/jal/Projects/temme-mode/temme-css.el")
 
 (ert-deftest temme-expand-simple-tag ()
   (should (equal (temme-expand-string "div")
