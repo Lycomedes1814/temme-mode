@@ -26,8 +26,8 @@ produces a ready-made email input, and so on.
 
 This is a from-scratch rewrite of
 [emmet-mode](https://github.com/smihica/emmet-mode) with a clean single-file
-codebase, lexical binding, and a straightforward parse → render → insert
-pipeline. Work in progress.
+implementation, lexical binding, and a straightforward parse → render →
+insert pipeline. Work in progress.
 
 ## Table of contents
 
@@ -443,12 +443,12 @@ Common property + value combinations have dedicated abbreviations:
 | `fxdc` | `flex-direction: column;` |
 | `fxww` | `flex-wrap: wrap;` |
 | `aic` | `align-items: center;` |
-| `aifs` / `aife` | `align-items: flex-start` / `flex-end;` |
-| `acc` / `acs` | `align-content: center` / `stretch;` |
+| `aifs` / `aife` | `align-items: flex-start;` / `align-items: flex-end;` |
+| `acc` / `acs` | `align-content: center;` / `align-content: stretch;` |
 | `jcc` | `justify-content: center;` |
-| `jcsb` / `jcsa` / `jcse` | `justify-content: space-between` / `-around` / `-evenly;` |
-| `ffs` / `ffss` / `ffm` | `font-family: serif` / `sans-serif` / `monospace;` |
-| `bdss` / `bdsd` / `bdsn` | `border-style: solid` / `dashed` / `none;` |
+| `jcsb` / `jcsa` / `jcse` | `justify-content: space-between;` / `justify-content: space-around;` / `justify-content: space-evenly;` |
+| `ffs` / `ffss` / `ffm` | `font-family: serif;` / `font-family: sans-serif;` / `font-family: monospace;` |
+| `bdss` / `bdsd` / `bdsn` | `border-style: solid;` / `border-style: dashed;` / `border-style: none;` |
 | `bgrn` / `bgsc` | `background-repeat: no-repeat;` / `background-size: cover;` |
 | `bxzbb` | `box-sizing: border-box;` |
 | `curp` | `cursor: pointer;` |
@@ -618,6 +618,11 @@ btn.primary{Submit}
 | `input:email` | `<input id="" type="email" name="" />` |
 | `input:url` | `<input id="" type="url" name="" />` |
 | `input:search` | `<input id="" type="search" name="" />` |
+| `input:datetime-local` | `<input id="" type="datetime-local" name="" />` |
+| `input:month` | `<input id="" type="month" name="" />` |
+| `input:week` | `<input id="" type="week" name="" />` |
+| `input:time` | `<input id="" type="time" name="" />` |
+| `input:tel` | `<input id="" type="tel" name="" />` |
 | `input:checkbox` / `input:c` | `<input id="" type="checkbox" name="" />` |
 | `input:radio` / `input:r` | `<input id="" type="radio" name="" />` |
 | `input:submit` / `input:s` | `<input type="submit" value="" />` |
