@@ -692,7 +692,10 @@ resolve to the context-appropriate implicit element tag."
                  (append classes
                          (split-string (cdr attr) "[[:space:]]+" t)))))
         (_
-         (push attr other-attrs))))
+         (let ((existing (assoc (car attr) other-attrs)))
+           (if existing
+               (setcdr existing (cdr attr))
+             (push (cons (car attr) (cdr attr)) other-attrs))))))
     (let (attrs)
       (when id
         (push (format " id=\"%s\"" (temme--escape-attr-value id)) attrs))
@@ -769,10 +772,12 @@ COUNT is the total repeat count, needed for reverse numbering (`$@-')."
 EFFECTIVE-INDEX is the repeat index passed down from a parent context.
 Handles repetition, numbering, and text nodes."
   (let ((count (max 0 (temme-node-repeat node)))
+        (node-index (or (temme-node-group-index node) effective-index))
         parts)
     (dotimes (i count)
       (let* ((idx (1+ i))
-             (n (temme--number-node node idx count))
+             (number-index (if (> count 1) idx (or node-index 1)))
+             (n (temme--number-node node number-index count))
              (tag (temme-node-tag n))
              (text (temme-node-text n))
              (children (temme-node-children n))
@@ -868,12 +873,13 @@ REPEAT-INDEX is the 1-based repetition index, used to vary lorem text."
 PARENT-INDEX, when non-nil, is the repeat index of an ancestor node."
   (let ((ind (or indent 0))
         (count (max 0 (temme-node-repeat node)))
-        (effective-index (or parent-index (temme-node-group-index node)))
+        (effective-index (or (temme-node-group-index node) parent-index))
         (parts nil))
     (dotimes (i count)
-      (let ((idx (1+ i)))
-        (push (temme--render-once (temme--number-node node idx count) ind
-                                  (if (> count 1) idx effective-index))
+      (let* ((idx (1+ i))
+             (number-index (if (> count 1) idx (or effective-index 1))))
+        (push (temme--render-once (temme--number-node node number-index count) ind
+                                  number-index)
               parts)))
     (apply #'concat (nreverse parts))))
 
@@ -1484,26 +1490,35 @@ empty value positions, allowing TAB/S-TAB navigation between them."
 
 (defun temme--bounds-of-abbrev ()
   "Return the bounds of the abbreviation around point.
-Spaces inside brace groups {…} do not terminate the abbreviation."
+Spaces inside brace groups {…} and attribute lists […] do not terminate
+the abbreviation."
   (save-excursion
-    (let ((depth 0))
+    (let ((brace-depth 0)
+          (bracket-depth 0))
       (while (and (> (point) (point-min))
                   (let ((c (char-before)))
-                    (or (> depth 0)
+                    (or (> brace-depth 0)
+                        (> bracket-depth 0)
                         (not (memq c '(?\s ?\t ?\n ?\r))))))
         (let ((c (char-before)))
-          (cond ((eq c ?\}) (setq depth (1+ depth)))
-                ((eq c ?\{) (setq depth (max 0 (1- depth)))))
+          (cond ((eq c ?\}) (setq brace-depth (1+ brace-depth)))
+                ((eq c ?\{) (setq brace-depth (max 0 (1- brace-depth))))
+                ((eq c ?\]) (setq bracket-depth (1+ bracket-depth)))
+                ((eq c ?\[) (setq bracket-depth (max 0 (1- bracket-depth)))))
           (forward-char -1))))
     (let ((start (point))
-          (depth 0))
+          (brace-depth 0)
+          (bracket-depth 0))
       (while (and (< (point) (point-max))
                   (let ((c (char-after)))
-                    (or (> depth 0)
+                    (or (> brace-depth 0)
+                        (> bracket-depth 0)
                         (not (memq c '(?\s ?\t ?\n ?\r))))))
         (let ((c (char-after)))
-          (cond ((eq c ?\{) (setq depth (1+ depth)))
-                ((eq c ?\}) (setq depth (max 0 (1- depth)))))
+          (cond ((eq c ?\{) (setq brace-depth (1+ brace-depth)))
+                ((eq c ?\}) (setq brace-depth (max 0 (1- brace-depth))))
+                ((eq c ?\[) (setq bracket-depth (1+ bracket-depth)))
+                ((eq c ?\]) (setq bracket-depth (max 0 (1- bracket-depth)))))
           (forward-char 1)))
       (cons start (point)))))
 

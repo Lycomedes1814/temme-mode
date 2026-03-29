@@ -1,7 +1,9 @@
 ;;; test-temme-mode.el --- Tests for temme-mode -*- lexical-binding: t; -*-
 
 (require 'ert)
-(load-file "/home/jal/Projects/temme-mode/temme-mode.el")
+(load-file
+ (expand-file-name "temme-mode.el"
+                   (file-name-directory (or load-file-name buffer-file-name))))
 
 (ert-deftest temme-expand-simple-tag ()
   (should (equal (temme-expand-string "div")
@@ -99,6 +101,14 @@
     (should (equal (buffer-string)
                    "    <section>\n      <p>Hi</p>\n    </section>"))))
 
+(ert-deftest temme-expand-command-handles-spaces-in-attribute-lists ()
+  (with-temp-buffer
+    (insert "input[type=text disabled]")
+    (goto-char (point-max))
+    (temme-expand)
+    (should (equal (buffer-string)
+                   "<input type=\"text\" disabled />"))))
+
 ;; --- Snippet tests ---
 
 (ert-deftest temme-expand-snippet-btn ()
@@ -173,7 +183,7 @@
 
 (ert-deftest temme-expand-snippet-attr-override ()
   (should (equal (temme-expand-string "a:link[href=https://example.com]")
-                 "<a href=\"https://\" href=\"https://example.com\"></a>")))
+                 "<a href=\"https://example.com\"></a>")))
 
 (ert-deftest temme-expand-snippet-ul-plus ()
   (should (equal (temme-expand-string "ul+")
@@ -482,6 +492,23 @@
   "Repeated elements inside mixed content render correctly inline."
   (should (equal (temme-expand-string "p>{start }+em*2{$}+{ end}")
                  "<p>start <em>1</em><em>2</em> end</p>")))
+
+(ert-deftest temme-expand-inline-numbering-inherits-parent-repeat-index ()
+  "Inline children should use the enclosing repeat index for numbering."
+  (should (equal (temme-expand-string "ul>(li>{item $})*2")
+                 (concat "<ul>\n"
+                         "  <li>item 1</li>\n"
+                         "  <li>item 2</li>\n"
+                         "</ul>")))
+  (should (equal (temme-expand-string "ul>(li>span{$})*2")
+                 (concat "<ul>\n"
+                         "  <li>\n"
+                         "    <span>1</span>\n"
+                         "  </li>\n"
+                         "  <li>\n"
+                         "    <span>2</span>\n"
+                         "  </li>\n"
+                         "</ul>"))))
 
 ;;; CSS abbreviation expansion ------------------------------------------------
 
