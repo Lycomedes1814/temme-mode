@@ -455,14 +455,14 @@ OFFSET shifts the starting position in the word pool for variety."
    ((= count 1)
     fragment)
    (t
-    (let (roots last-path)
+    (let (roots paths)
       (dotimes (i count)
         (let ((copy (temme--clone-fragment fragment)))
           (dolist (root (temme-fragment-roots copy))
             (setf (temme-node-group-index root) (1+ i)))
           (setq roots (append roots (temme-fragment-roots copy))
-                last-path (temme-fragment-paths copy))))
-      (make-temme-fragment :roots roots :paths last-path)))))
+                paths (append paths (temme-fragment-paths copy)))))
+      (make-temme-fragment :roots roots :paths paths)))))
 
 (defun temme--group-fragment (fragment)
   "Treat FRAGMENT as a group whose roots become the active paths."
@@ -686,7 +686,7 @@ resolve to the context-appropriate implicit element tag."
     (dolist (attr (temme-node-attrs node))
       (pcase (car attr)
         ("id"
-         (setq id (unless (eq (cdr attr) t) (cdr attr))))
+         (setq id (if (eq (cdr attr) t) "" (cdr attr))))
         ("class"
          (when (and (cdr attr) (not (eq (cdr attr) t)))
            (setq classes
@@ -1433,8 +1433,10 @@ A hyphen is a separator unless it is at the start or follows another hyphen."
            (suffix (match-string 2 val))
            (unit (cond
                   ((not (string-empty-p suffix))
-                   (or (temme--css-unit-suffix (aref suffix 0))
-                       suffix))
+                   (if (= (length suffix) 1)
+                       (or (temme--css-unit-suffix (aref suffix 0))
+                           suffix)
+                     suffix))
                   ((string= num "0") "")
                   ((member property temme--css-unitless-properties) "")
                   (t "px"))))
