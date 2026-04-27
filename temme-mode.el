@@ -1,7 +1,7 @@
 ;;; temme-mode.el --- Emmet rewrite for Emacs -*- lexical-binding: t; -*-
 
-;; Author: Jovlang <lycomedes@proton.me>
-;; Maintainer: Jovlang <lycomedes@proton.me>
+;; Author: Jovlang <code@jovlang.net>
+;; Maintainer: Jovlang <code@jovlang.net>
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience, editing
